@@ -1,0 +1,48 @@
+# Dependencies
+/linux/flutter/ephemeral
+/windows/flutter/ephemeral
+/mac/flutter/ephemeral
+*.mode1v3
+*.mode2v3
+*.pbxuser
+*.perspectivev3
+!default.pbxuser
+!default.mode1v3
+!default.mode2v3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+
+# Android/IntelliJ
+build/
+.idea
+.gradle
+local.properties
+*.iml
+*.hprof
+.cxx/
+*.jks
+*.keystore
+
+# macOS
+.DS_Store
+
+# ENV
+.env
+google-services.json
+GoogleService-Info.plist
+
+# Flutter/Dart/Pub
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/android/app/build/
+lib/core/constants/api_constants.dart

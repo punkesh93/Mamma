@@ -1,0 +1,647 @@
+## 🚨 URGENT ISSUE
+
+**The app has lost all its UI and features!** 
+
+Antigravity needs to:
+1. **RESTORE** the original working UI from `D:\Mamma buddy` 
+2. **ADD** the new features on top of existing working code
+3. **FIX** AI integration issues
+
+---
+
+## 📂 PROJECT STRUCTURE
+
+```
+Current Project Location: D:\Mamma buddy\MammaBuddyFlutter
+
+CRITICAL FILES TO PRESERVE:
+- All existing UI components
+- All working features
+- Firebase configuration
+- Routing setup
+- State management
+- Asset files
+```
+
+---
+
+## 🔴 STEP 1: RESTORE ORIGINAL WORKING APP
+
+### Instructions for Antigravity:
+
+```
+DO NOT DELETE OR OVERWRITE EXISTING CODE!
+
+The app at D:\Mamma buddy has a fully functional UI with:
+✅ Homepage with all widgets
+✅ Profile page with user data
+✅ Journey tab
+✅ Wellness tab
+✅ Partner mode
+✅ All navigation working
+✅ Firebase integration working
+
+FIRST: Make a complete backup
+1. Copy entire D:\Mamma buddy folder
+2. Rename copy to: D:\Mamma buddy BACKUP [DATE]
+
+SECOND: Verify what's currently working
+1. Run: flutter run
+2. Take screenshots of EVERY screen
+3. List ALL features that work
+4. List ALL features that don't work
+5. Document the full folder structure
+
+THIRD: Identify what broke
+1. Check recent git commits (if using git)
+2. Compare current code with backup
+3. Find what changed that broke the UI
+```
+
+---
+
+## 🔍 STEP 2: ANALYZE EXISTING CODEBASE
+
+### Tell Antigravity to Document:
+
+```bash
+# Run this in terminal to see project structure
+cd "D:\Mamma buddy"
+tree -L 3 -I 'node_modules|build|.dart_tool' > project_structure.txt
+
+# List all screen files
+find lib -name "*_screen.dart" -o -name "*_page.dart" -o -name "*_tab.dart"
+
+# List all widget files
+find lib/features -name "*_card.dart" -o -name "*_widget.dart"
+
+# Check if assets exist
+ls -la assets/
+
+# Verify Firebase config
+cat android/app/google-services.json | head -20
+```
+
+### Document Current State:
+
+```
+Create a file: CURRENT_STATE.md
+
+Write down:
+
+# Homepage Components
+- [ ] Baby Progress Card (Week X, Size, Image)
+- [ ] AI Insights Card
+- [ ] Nutrition Goals Card
+- [ ] Quick Actions Grid
+- [ ] Wellness Today
+- [ ] Meal Ideas
+- [ ] Weekly Insights
+- [ ] Partner Engagement Card
+
+# Profile Page Components
+- [ ] User photo and name
+- [ ] Stats row (Days, Meals, Badges, Points)
+- [ ] Subscription card
+- [ ] Settings sections
+- [ ] Sign out button
+
+# Journey Tab Components
+- [ ] Tab navigation (Size, Milestones, Journal, Symptoms)
+- [ ] Content for each tab
+
+# Wellness Tab Components
+- [ ] Yoga videos
+- [ ] Meditation
+- [ ] Breathing exercises
+- [ ] Movement tracking
+
+# Partner Mode Components
+- [ ] Partner dashboard
+- [ ] Resources
+- [ ] Chat
+- [ ] Invite flow
+
+# What's Working ✅
+[List everything that works]
+
+# What's Broken ❌
+[List everything that doesn't work]
+
+# What's Missing 🔍
+[List features mentioned but not implemented]
+```
+
+---
+
+## 🛠️ STEP 3: RESTORE HOMEPAGE UI
+
+### If Homepage is Empty/Broken:
+
+```dart
+// FILE: lib/features/home/home_screen.dart
+
+// Antigravity: DO NOT create from scratch!
+// Instead, find the EXISTING home_screen.dart and check:
+
+1. Is the file still there?
+   Location: lib/features/home/home_screen.dart
+   
+2. Does it have all the widgets imported?
+   Check imports at top of file
+   
+3. Are all widget files present?
+   - lib/features/home/widgets/baby_progress_card.dart
+   - lib/features/home/widgets/ai_insights_card.dart
+   - lib/features/home/widgets/nutrition_goals_card.dart
+   - lib/features/home/widgets/quick_actions_grid.dart
+   - lib/features/home/widgets/wellness_today_card.dart
+   - lib/features/home/widgets/meal_ideas_card.dart
+   - lib/features/home/widgets/weekly_insights_card.dart
+   - lib/features/home/widgets/partner_engagement_card.dart
+
+4. Check the build() method returns all widgets in ListView
+
+5. If file is corrupted or empty:
+   - Restore from backup
+   - Or check git history: git log --oneline lib/features/home/home_screen.dart
+```
+
+---
+
+## 🛠️ STEP 4: RESTORE PROFILE PAGE UI
+
+### If Profile Page is Empty/Broken:
+
+```dart
+// FILE: lib/features/profile/profile_tab.dart
+
+// Antigravity: Check if this file exists and has content
+
+Expected structure:
+- CustomScrollView with SliverAppBar
+- Profile photo in header
+- Stats row with 4 metrics
+- Subscription management card
+- Settings sections
+- Account section with sign out
+
+If missing: Restore from backup or git history
+```
+
+---
+
+## 🔧 STEP 5: FIX AI INTEGRATION
+
+### Current AI Issues:
+
+```
+Problem: "AI is not working at all"
+
+Possible causes:
+1. ❌ NVIDIA API key invalid
+2. ❌ Network request failing
+3. ❌ Response parsing broken
+4. ❌ Missing error handling
+5. ❌ Widget not calling API
+6. ❌ No internet permission
+
+Debug Steps:
+```
+
+### Create AI Debug Screen:
+
+```dart
+// FILE: lib/debug/ai_test_screen.dart
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class AITestScreen extends StatefulWidget {
+  @override
+  State<AITestScreen> createState() => _AITestScreenState();
+}
+
+class _AITestScreenState extends State<AITestScreen> {
+  String _log = '';
+  bool _testing = false;
+  
+  void _addLog(String message) {
+    setState(() {
+      _log += '\n$message';
+    });
+    print(message);
+  }
+  
+  Future<void> _testNvidiaAPI() async {
+    setState(() {
+      _testing = true;
+      _log = 'Starting NVIDIA API Test...\n';
+    });
+    
+    try {
+      _addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      _addLog('🧪 NVIDIA API CONNECTION TEST');
+      _addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      const apiKey = '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';
+      const endpoint = 'https://integrate.api.nvidia.com/v1/chat/completions';
+      
+      _addLog('🔑 API Key: ${apiKey.substring(0, 20)}...');
+      _addLog('🌐 Endpoint: $endpoint');
+      
+      final payload = {
+        'model': 'qwen/qwen3.5-122b-a10b',
+        'messages': [
+          {'role': 'user', 'content': 'Say "Hello MamaBuddy" in one sentence.'}
+        ],
+        'max_tokens': 50,
+        'temperature': 0.7,
+        'stream': false,
+      };
+      
+      _addLog('📦 Sending request...');
+      
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(payload),
+      ).timeout(Duration(seconds: 30));
+      
+      _addLog('📊 Status Code: ${response.statusCode}');
+      _addLog('📄 Response Length: ${response.body.length} bytes');
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final content = data['choices'][0]['message']['content'];
+        
+        _addLog('✅ SUCCESS!');
+        _addLog('📝 Response: $content');
+        _addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        _addLog('🎉 API IS WORKING!');
+        
+      } else {
+        _addLog('❌ FAILED!');
+        _addLog('Response: ${response.body}');
+      }
+      
+    } catch (e, stack) {
+      _addLog('❌ ERROR: $e');
+      _addLog('Stack: ${stack.toString().substring(0, 500)}');
+    }
+    
+    setState(() => _testing = false);
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('AI Debug Test'),
+        backgroundColor: Color(0xFFC2185B),
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(20),
+            child: ElevatedButton(
+              onPressed: _testing ? null : _testNvidiaAPI,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFC2185B),
+                foregroundColor: Colors.white,
+                minimumSize: Size(double.infinity, 50),
+              ),
+              child: _testing
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Text('Testing...'),
+                      ],
+                    )
+                  : Text('Run NVIDIA API Test'),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.all(20),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: SingleChildScrollView(
+                child: SelectableText(
+                  _log.isEmpty ? 'Tap "Run Test" to start...' : _log,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                    color: Colors.greenAccent,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### Add Test Button to App:
+
+```dart
+// FILE: lib/features/home/home_screen.dart
+
+// Add this to the AppBar actions:
+
+AppBar(
+  title: Text('MamaBuddy'),
+  actions: [
+    // ✅ ADD THIS DEBUG BUTTON (remove in production)
+    IconButton(
+      icon: Icon(Icons.bug_report),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => AITestScreen()),
+        );
+      },
+    ),
+  ],
+)
+```
+
+---
+
+## 📝 COMPLETE RESTORATION CHECKLIST
+
+### Tell Antigravity to Complete This:
+
+```
+□ PHASE 1: BACKUP & ASSESSMENT (30 minutes)
+  □ Created full backup of D:\Mamma buddy
+  □ Documented current folder structure
+  □ Listed all existing files
+  □ Ran flutter run and took screenshots
+  □ Created CURRENT_STATE.md document
+
+□ PHASE 2: VERIFY EXISTING CODE (1 hour)
+  □ Checked all screen files exist
+  □ Checked all widget files exist
+  □ Verified assets folder has images
+  □ Confirmed Firebase config exists
+  □ Tested navigation between screens
+  □ Identified which features work
+  □ Identified which features are broken
+
+□ PHASE 3: RESTORE BROKEN UI (2-3 hours)
+  □ Homepage displays all widgets
+  □ Profile page shows user data
+  □ Journey tab has all content
+  □ Wellness tab has videos/content
+  □ Partner mode accessible
+  □ Navigation works between all tabs
+
+□ PHASE 4: FIX AI INTEGRATION (2 hours)
+  □ Added AI test screen
+  □ Tested NVIDIA API connection
+  □ Verified API key is valid
+  □ Fixed request/response parsing
+  □ Added proper error handling
+  □ Tested AI Insights generation
+  □ Tested Meal Ideas generation
+  □ Tested Symptom Checker
+
+□ PHASE 5: VERIFY EVERYTHING WORKS (1 hour)
+  □ Test user sign-in flow
+  □ Test all homepage widgets
+  □ Test profile page features
+  □ Test journey tab content
+  □ Test wellness videos
+  □ Test partner mode
+  □ Test AI features
+  □ Take screenshots of working app
+
+□ PHASE 6: DOCUMENT WHAT WAS DONE
+  □ Created RESTORATION_REPORT.md
+  □ Listed all files changed
+  □ Listed all bugs fixed
+  □ Listed remaining issues
+  □ Created TODO list for new features
+```
+
+---
+
+## 🚨 CRITICAL: DON'T START FROM SCRATCH
+
+### Important Message for Antigravity:
+
+```
+⚠️ DO NOT CREATE NEW UI FILES FROM SCRATCH!
+
+The app in D:\Mamma buddy already has:
+- Complete UI design
+- Working Firebase integration
+- State management setup
+- Navigation system
+- Asset files
+- Theme configuration
+
+YOUR JOB:
+1. Find WHY the UI disappeared
+2. RESTORE the original working code
+3. ADD new features ON TOP of existing code
+4. FIX bugs in existing features
+
+NOT YOUR JOB:
+1. ❌ Delete existing files
+2. ❌ Rewrite everything from scratch
+3. ❌ Change the project structure
+4. ❌ Replace working features
+
+APPROACH:
+- Investigate first
+- Understand what exists
+- Make minimal changes
+- Test frequently
+- Document everything
+```
+
+---
+
+## 🔍 STEP 6: INVESTIGATION COMMANDS
+
+### Tell Antigravity to Run These:
+
+```bash
+# Check if UI files exist
+cd "D:\Mamma buddy"
+dir lib\features\home\widgets /s
+
+# Check git status (if using git)
+git status
+git log --oneline -10
+
+# Check for recent changes
+git diff HEAD~5
+
+# Find all Dart files
+dir *.dart /s /b > all_dart_files.txt
+
+# Check pubspec dependencies
+type pubspec.yaml
+
+# Verify Firebase setup
+type android\app\google-services.json
+
+# Check if assets are referenced
+findstr /s "assets" lib\*.dart
+```
+
+---
+
+## 📊 STEP 7: CREATE RESTORATION REPORT
+
+### Template for Antigravity:
+
+```markdown
+# MamaBuddy Restoration Report
+Date: [DATE]
+Time Spent: [HOURS]
+
+## What Was Broken
+- [ ] Homepage: [DESCRIBE ISSUE]
+- [ ] Profile: [DESCRIBE ISSUE]
+- [ ] AI Features: [DESCRIBE ISSUE]
+- [ ] Navigation: [DESCRIBE ISSUE]
+
+## Root Cause
+[Explain what caused the UI to break]
+
+## Files Changed
+1. [FILE PATH] - [WHAT WAS CHANGED]
+2. [FILE PATH] - [WHAT WAS CHANGED]
+
+## Files Restored from Backup
+1. [FILE PATH]
+2. [FILE PATH]
+
+## What's Working Now ✅
+- [ ] Homepage loads with all widgets
+- [ ] Profile shows user data
+- [ ] Journey tab has content
+- [ ] Wellness tab works
+- [ ] Partner mode accessible
+- [ ] AI Insights generate
+- [ ] Meal Ideas show
+- [ ] Navigation works
+
+## What's Still Broken ❌
+- [ ] [ISSUE]
+- [ ] [ISSUE]
+
+## Next Steps
+1. [PRIORITY 1]
+2. [PRIORITY 2]
+3. [PRIORITY 3]
+
+## Screenshots
+[Before] → [After]
+```
+
+---
+
+## 🎯 IMMEDIATE ACTION PLAN
+
+### Tell Antigravity to Do This RIGHT NOW:
+
+```
+STEP 1 (5 minutes):
+→ Open D:\Mamma buddy in VS Code
+→ Run: flutter pub get
+→ Run: flutter run
+→ Take screenshot of what appears
+→ Report back: "Homepage shows: [WHAT YOU SEE]"
+
+STEP 2 (10 minutes):
+→ Check if these files exist:
+  • lib/features/home/home_screen.dart
+  • lib/features/profile/profile_tab.dart
+  • lib/main.dart
+  • lib/app.dart
+→ Open each file
+→ Count lines of code in each
+→ Report back the line counts
+
+STEP 3 (15 minutes):
+→ Search for "BabyProgressCard" in entire project
+→ Search for "AIInsightsCard" in entire project
+→ Search for "NutritionGoalsCard" in entire project
+→ Report back: Found in [FILE PATHS]
+
+STEP 4 (20 minutes):
+→ Run AI test screen code (provided above)
+→ Click "Run NVIDIA API Test"
+→ Copy entire console output
+→ Report back results
+
+STEP 5:
+→ Based on findings, decide:
+  A) Restore from backup, OR
+  B) Fix broken code, OR
+  C) Debug further
+```
+
+---
+
+## 💬 RESPONSE FORMAT
+
+### Antigravity Should Reply With:
+
+```
+# Investigation Results
+
+## Current State
+- App runs: YES/NO
+- Homepage visible: YES/NO
+- Widgets showing: [LIST]
+- Console errors: [LIST]
+
+## Files Found
+✅ lib/features/home/home_screen.dart (XXX lines)
+✅ lib/features/home/widgets/*.dart (XX files)
+✅ lib/features/profile/profile_tab.dart (XXX lines)
+❌ [MISSING FILE]
+
+## AI Test Results
+Status Code: XXX
+Response: [FULL RESPONSE]
+Working: YES/NO
+
+## Recommended Action
+[RESTORE BACKUP / FIX CODE / DEBUG FURTHER]
+
+## Next Steps
+1. [SPECIFIC ACTION]
+2. [SPECIFIC ACTION]
+```
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon.png"
