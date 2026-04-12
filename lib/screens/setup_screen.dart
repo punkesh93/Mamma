@@ -206,7 +206,7 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
           child: DropdownButtonFormField<String>(
-            value: _formData['region'] as String? ?? 'US',
+            initialValue: _formData['region'] as String? ?? 'US',
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),

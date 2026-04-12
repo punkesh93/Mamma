@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart';
 import '../providers/auth_provider.dart';
-import '../models/user_model.dart';
-import '../core/services/firestore_service.dart';
 import '../core/services/subscription_service.dart';
 
 class PaywallScreen extends StatefulWidget {
@@ -19,12 +17,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
   String _selectedPlan = 'yearly';
   bool _isProcessing = false;
   String? _successPlan;
-  final FirestoreService _firestoreService = FirestoreService();
   final SubscriptionService _subscriptionService = SubscriptionService();
 
   // Design tokens
   static const _rose = Color(0xFFE8748A);
-  static const _purple = Color(0xFF6B4B9A);
   static const _ink = Color(0xFF1A1A3E);
   static const _mauve = Color(0xFF5C5470);
 
@@ -107,7 +103,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      final region = user.region ?? 'US';
+      final region = user.region;
       final plan = _getPlans(region).firstWhere((p) => p['id'] == planId);
       final amount = plan['priceNum'].toString();
       
@@ -135,14 +131,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: const Text('OK'),
                 ),
-                // For demo/testing: a button to simulate success
-                TextButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await _simulateSuccess(planId);
-                  },
-                  child: const Text('Simulate Success (Dev)', style: TextStyle(color: _rose)),
-                ),
+                if (kDebugMode)
+                  TextButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await _simulateSuccess(planId);
+                    },
+                    child: const Text('Simulate Success (Dev)', style: TextStyle(color: _rose)),
+                  ),
               ],
             ),
           );

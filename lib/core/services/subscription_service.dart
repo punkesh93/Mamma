@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../models/user_model.dart';
 import '../constants/api_constants.dart';
@@ -58,8 +56,8 @@ class SubscriptionService {
   /// Generates the live Razorpay payment URL
   Future<Uri> getRazorpayUrl({required String amount}) async {
     final key = ApiConstants.razorpayKey;
-    // Standard Razorpay payment link
-    return Uri.parse('https://razorpay.me/@mammabuddy?amount=${(double.parse(amount) * 100).toInt()}');
+    // Standard Razorpay payment link with key
+    return Uri.parse('https://razorpay.me/@mammabuddy?amount=${(double.parse(amount) * 100).toInt()}&key=$key');
   }
 
   /// Activates premium for a user (called after successful payment)

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -31,7 +30,7 @@ class _ProfileTabState extends State<ProfileTab> {
   bool _isEditing = false;
   String _editName = '';
   bool _isUploading = false;
-  bool _showPaywall = false;
+  final bool _showPaywall = false;
   String? _activeSection;
   bool _showCancelConfirm = false;
   bool _isCancelling = false;
@@ -307,20 +306,18 @@ class _ProfileTabState extends State<ProfileTab> {
                   iconColor: Colors.orange,
                   title: 'Debug: Reset Subscription',
                   onTap: () async {
-                    if (user != null) {
-                      final updatedUser = user.copyWith(plan: 'basic');
-                      await auth.saveUserData(updatedUser);
-                      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-                        'plan': 'basic',
-                        'isPremium': false,
-                        'premiumSince': FieldValue.delete(),
-                      });
-                      await auth.reloadUser();
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Subscription Reset')));
-                      }
+                    final updatedUser = user.copyWith(plan: 'basic');
+                    await auth.saveUserData(updatedUser);
+                    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+                      'plan': 'basic',
+                      'isPremium': false,
+                      'premiumSince': FieldValue.delete(),
+                    });
+                    await auth.reloadUser();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Subscription Reset')));
                     }
-                  },
+                                    },
                   showDivider: true,
                 ),
                 _buildListTile(
@@ -686,7 +683,7 @@ class _ProfileTabState extends State<ProfileTab> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: _rose,
+            activeThumbColor: _rose,
           ),
         ],
       ),

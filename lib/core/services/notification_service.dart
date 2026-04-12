@@ -9,7 +9,8 @@ class NotificationService {
       badge: true,
       sound: true,
     );
-    print('User granted permission: \${settings.authorizationStatus}');
+    // ignore: avoid_print
+    print('User granted permission: ${settings.authorizationStatus}');
   }
 
   Future<String?> getToken() async {

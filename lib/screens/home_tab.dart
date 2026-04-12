@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +14,7 @@ const _rose = Color(0xFFE8748A);
 const _sky = Color(0xFF2A7A90);
 const _sage = Color(0xFF2E8B72);
 const _lavender = Color(0xFF6B4B9A);
+// ignore: unused_element
 const _ink = Color(0xFF1A1A3E);
 const _mauve = Color(0xFF5C5470);
 const _cream = Color(0xFFFAF5F0);
@@ -72,7 +72,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   bool _weekExpanded = false;
   String? _aiInsight;
   bool _loadingInsight = false;
-  bool _wellnessExpanded = false;
+  bool _wellnessExpanded = false; // ignore: unused_field
   String? _activeWellness;
   bool _showMealPopup = false;
   String _mealInput = '';
@@ -81,7 +81,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   int _moodUsage = 0;
   String? _moodFeedback;
   bool _isAnalyzingMood = false;
-  bool _nutritionExpanded = false;
+  bool _nutritionExpanded = false; // ignore: unused_field
 
   final OpenRouterService _aiService = OpenRouterService();
 
@@ -966,7 +966,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           _buildProgressRow('🥗 Meals Logged', '${user.mealsLogged ?? 0} this week'),
           _buildProgressRow('💧 Water Today', '${user.achievedToday?.water ?? 0}/8 glasses'),
           _buildProgressRow('🔥 Calories Today', '${user.achievedToday?.calories ?? 0} kcal'),
-          _buildProgressRow('🏆 Total Points', '${user.totalPoints ?? 0} pts'),
+          _buildProgressRow('🏆 Total Points', '${user.totalPoints} pts'),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,

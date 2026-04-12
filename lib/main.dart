@@ -150,7 +150,6 @@ final GoRouter _router = GoRouter(
 
     final String location = state.uri.path;
     final bool goingToAuth = location == '/welcome' || location == '/splash' || location == '/setup';
-    final bool atHome = location == '/';
 
     if (auth.isLoading) return null;
 

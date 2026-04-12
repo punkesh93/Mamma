@@ -12,8 +12,6 @@ class AuthService {
   // Current user getter
   User? get currentUser => _auth.currentUser;
 
-  bool _googleInitialized = false;
-
   // Native Flutter Google Sign-In
   // This permanently fixes the Google Play Services spinning issue
   Future<UserCredential?> signInWithGoogle() async {
@@ -27,10 +25,9 @@ class AuthService {
         return await _auth.signInWithPopup(provider);
       } else {
         // On Android / iOS, we use the native google_sign_in plugin
-        final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
-        if (googleUser == null) return null;
+        final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
-        final GoogleSignInAuthentication auth = await googleUser.authentication;
+        final GoogleSignInAuthentication auth = googleUser.authentication;
         final credential = GoogleAuthProvider.credential(
           idToken: auth.idToken,
         );
