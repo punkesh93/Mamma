@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
 import '../core/services/openrouter_service.dart';
 import '../models/user_model.dart';
@@ -92,19 +93,27 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     _checkMoodUsage();
   }
 
-  void _checkMoodUsage() {
+  Future<void> _checkMoodUsage() async {
     final user = context.read<AuthProvider>().userData;
     if (user == null) return;
     final today = DateTime.now().toIso8601String().split('T')[0];
     final key = 'mood_usage_${user.uid}_$today';
+    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _moodUsage = int.tryParse(_getLocalStorage(key) ?? '0') ?? 0;
+      _moodUsage = prefs.getInt(key) ?? 0;
     });
   }
 
-  String? _getLocalStorage(String key) {
-    // For now, return null - in production would use shared_preferences
-    return null;
+  Future<void> _updateMoodUsage() async {
+    final user = context.read<AuthProvider>().userData;
+    if (user == null) return;
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final key = 'mood_usage_${user.uid}_$today';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(key, _moodUsage + 1);
+    setState(() {
+      _moodUsage++;
+    });
   }
 
   Future<void> _loadAIInsight() async {
@@ -112,11 +121,18 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     try {
       final user = context.read<AuthProvider>().userData;
       if (user != null) {
-        // In production, fetch from Firestore and generate AI insight
-        final prompt = 'You are Mamma Buddy AI. Generate a short, celebratory insight for a pregnant user.';
+        final milestone = _getMilestone(user.currentWeek);
+        final prompt = '''
+        ROLE: You are Mamma Buddy, an expert prenatal coach.
+        USER: ${user.name}, Week ${user.currentWeek} of pregnancy.
+        CONTEXT: Baby is the size of a ${milestone.size}.
+        GOAL: Generate a 1-sentence, highly personalized, medically-sound yet celebratory daily tip or insight.
+        STYLE: Empathetic, expert, short (max 20 words).
+        ''';
+        
         final insight = await _aiService.chat(conversationHistory: [
           {'role': 'system', 'content': prompt},
-          {'role': 'user', 'content': 'Give me a short insight'},
+          {'role': 'user', 'content': 'Generate my insight for today.'},
         ]);
         if (!mounted) return;
         setState(() => _aiInsight = insight);
@@ -155,8 +171,8 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       ]);
       setState(() {
         _moodFeedback = response;
-        _moodUsage++;
       });
+      await _updateMoodUsage();
     } catch (e) {
       setState(() => _moodFeedback = "You're doing great! 🌸");
     } finally {

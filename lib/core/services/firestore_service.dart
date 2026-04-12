@@ -75,4 +75,19 @@ class FirestoreService {
       'timestamp': DateTime.now().toIso8601String(),
     });
   }
+
+  // ── Doctor Reports (NEW) ────────────────────────────────────────────────
+  
+  Future<void> saveDoctorReport(String userId, Map<String, dynamic> reportData) async {
+    await _db.collection('users').doc(userId).collection('doctor_reports').doc(reportData['id']).set(reportData);
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamDoctorReports(String userId) {
+    return _db
+        .collection('users')
+        .doc(userId)
+        .collection('doctor_reports')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
+  }
 }

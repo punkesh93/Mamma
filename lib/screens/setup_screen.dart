@@ -754,7 +754,6 @@ class _SetupScreenState extends State<SetupScreen> {
                 Row(
                   children: List.generate(3, (i) {
                     final isActive = i + 1 <= _step;
-                    final isCurrent = i + 1 == _step;
                     return Expanded(
                       child: Container(
                         height: 4,

@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../core/services/openrouter_service.dart';
+import '../core/services/firestore_service.dart';
+import '../providers/auth_provider.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const _sage = Color(0xFF2E8B72);
@@ -27,6 +30,22 @@ class DoctorReport {
     required this.aiAnalysis,
     required this.week,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'timestamp': timestamp,
+    'photoUrl': photoUrl,
+    'aiAnalysis': aiAnalysis,
+    'week': week,
+  };
+
+  factory DoctorReport.fromJson(Map<String, dynamic> json) => DoctorReport(
+    id: json['id'],
+    timestamp: json['timestamp'],
+    photoUrl: json['photoUrl'],
+    aiAnalysis: json['aiAnalysis'],
+    week: json['week'],
+  );
 }
 
 class DoctorTab extends StatefulWidget {
@@ -40,6 +59,7 @@ class DoctorTab extends StatefulWidget {
 
 class _DoctorTabState extends State<DoctorTab> {
   final OpenRouterService _aiService = OpenRouterService();
+  final FirestoreService _firestoreService = FirestoreService();
   final ImagePicker _picker = ImagePicker();
 
   File? _pickedImage;
@@ -49,9 +69,6 @@ class _DoctorTabState extends State<DoctorTab> {
   String? _aiResponse;
   String? _analyzeError;
   bool _showHistory = false;
-
-  // Mock history - in production would come from Firestore
-  final List<DoctorReport> _history = [];
 
   // ── Pick image from gallery ───────────────────────────────────────────────
   Future<void> _handleUploadClick() async {
@@ -140,9 +157,12 @@ class _DoctorTabState extends State<DoctorTab> {
     }
   }
 
-  // ── Save report to history ────────────────────────────────────────────────
   void _saveReport() {
     if (_aiResponse != null) {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final user = auth.userData;
+      if (user == null) return;
+
       final now = DateTime.now();
       final report = DoctorReport(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -152,8 +172,9 @@ class _DoctorTabState extends State<DoctorTab> {
         week: widget.week,
       );
 
+      _firestoreService.saveDoctorReport(user.uid, report.toJson());
+
       setState(() {
-        _history.insert(0, report);
         _pickedImage = null;
         _base64Image = null;
         _aiResponse = null;
@@ -339,6 +360,9 @@ class _DoctorTabState extends State<DoctorTab> {
   }
 
   Widget _buildHistoryCard() {
+    final auth = Provider.of<AuthProvider>(context);
+    final user = auth.userData;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -363,12 +387,12 @@ class _DoctorTabState extends State<DoctorTab> {
                     child: const Icon(Icons.folder_special, color: _sage, size: 20),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('My Reports', style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700, color: _ink)),
-                        Text('${_history.length} saved', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: _mauve)),
+                        Text('My Reports', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: _ink)),
+                        Text('Historical analyses', style: TextStyle(fontSize: 11, color: _mauve)),
                       ],
                     ),
                   ),
@@ -378,32 +402,47 @@ class _DoctorTabState extends State<DoctorTab> {
             ),
           ),
           // History list
-          if (_showHistory) ...[
+          if (_showHistory && user != null) ...[
             const Divider(height: 1),
-            if (_history.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    const Icon(Icons.description_outlined, color: Color(0x552E8B72), size: 48),
-                    const SizedBox(height: 12),
-                    Text('No reports uploaded yet.', style: GoogleFonts.plusJakartaSans(color: _mauve, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    Text('Upload your first report to see AI insights here.', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: _mauve), textAlign: TextAlign.center),
-                  ],
-                ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _history.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final report = _history[index];
-                  return _buildHistoryItem(report);
-                },
-              ),
+            StreamBuilder(
+              stream: _firestoreService.streamDoctorReports(user.uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(child: CircularProgressIndicator(color: _sage)),
+                  );
+                }
+                
+                final docs = snapshot.data?.docs ?? [];
+                
+                if (docs.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.description_outlined, color: Color(0x552E8B72), size: 48),
+                        const SizedBox(height: 12),
+                        Text('No reports uploaded yet.', style: GoogleFonts.plusJakartaSans(color: _mauve, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 4),
+                        Text('Upload your first report to see AI insights here.', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: _mauve), textAlign: TextAlign.center),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: docs.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final report = DoctorReport.fromJson(docs[index].data());
+                    return _buildHistoryItem(report);
+                  },
+                );
+              },
+            ),
           ],
         ],
       ),

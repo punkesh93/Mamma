@@ -13,10 +13,8 @@ import '../core/services/subscription_service.dart';
 const _rose = Color(0xFFE8748A);
 const _lavender = Color(0xFF6B4B9A);
 const _sky = Color(0xFF2A7A90);
-const _sage = Color(0xFF2E8B72);
 const _ink = Color(0xFF1A1A3E);
 const _mauve = Color(0xFF5C5470);
-const _cream = Color(0xFFFAF5F0);
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -30,7 +28,6 @@ class _ProfileTabState extends State<ProfileTab> {
   bool _isEditing = false;
   String _editName = '';
   bool _isUploading = false;
-  final bool _showPaywall = false;
   String? _activeSection;
   bool _showCancelConfirm = false;
   bool _isCancelling = false;
