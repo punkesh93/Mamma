@@ -57,7 +57,7 @@ void main() async {
     // Tell Firestore to use your specific database name
     FirebaseFirestore.instanceFor(
       app: Firebase.app(), 
-      databaseId: 'ai-studio-c578e6c9-8cd4-4412-bd62-c325f63dac05'
+      databaseId: '(default)'
     );
   } catch (e) {
     debugPrint("Firebase init error: $e");

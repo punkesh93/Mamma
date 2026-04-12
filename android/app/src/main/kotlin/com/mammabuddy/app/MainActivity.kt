@@ -1,4 +1,4 @@
-package com.mammabuddy.app.mammabuddy
+package com.mammabuddy.app
 
 import io.flutter.embedding.android.FlutterActivity
 
