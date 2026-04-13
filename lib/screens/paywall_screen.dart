@@ -114,7 +114,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         url = await _subscriptionService.getPayPalUrl(amount: amount, currency: 'USD');
       }
 
-      if (await canLaunchUrl(url)) {
+      try {
         await launchUrl(url, mode: LaunchMode.externalApplication);
         
         // Show a "Waiting for payment" dialog or similar
@@ -143,8 +143,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
             ),
           );
         }
-      } else {
-        throw Exception('Could not launch payment gateway');
+      } catch (e) {
+        throw Exception('Could not launch payment gateway: $e');
       }
     } catch (e) {
       if (mounted) {

@@ -18,11 +18,42 @@ class MaternalTrackerScreen extends StatefulWidget {
 class _MaternalTrackerScreenState extends State<MaternalTrackerScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadLatestRecord();
+    });
+  }
+
+  Future<void> _loadLatestRecord() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final tracker = Provider.of<TrackerProvider>(context, listen: false);
+    if (auth.userData != null) {
+      final latest = await tracker.getLatestRecord(auth.userData!.uid);
+      if (latest != null && mounted) {
+        _formKey.currentState?.patchValue({
+          'lmp_date': DateTime.tryParse(latest.lmpDate ?? '') ?? DateTime.now().subtract(const Duration(days: 56)),
+          'height': latest.heightCm.toString(),
+          'pre_weight': latest.prePregnancyWeightKg.toString(),
+          'current_weight': latest.currentWeightKg.toString(),
+          'bp_systolic': latest.bloodPressureSystolic.toString(),
+          'bp_diastolic': latest.bloodPressureDiastolic.toString(),
+          'hemoglobin': latest.hemoglobin.toString(),
+          'fundal_height': latest.fundalHeightCm.toString(),
+          'fhr': latest.fetalHeartRateBpm.toString(),
+          'urine_protein': latest.hasProtein,
+          'urine_sugar': latest.hasSugar,
+          'urine_bacteria': latest.hasBacteria,
+          'symptoms': latest.symptomsDescription,
+        });
+      }
+    }
+  }
+
   int _calculateGestationalWeeks(DateTime lmp) {
     return DateTime.now().difference(lmp).inDays ~/ 7;
   }
-
-
 
   void _submitData() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
@@ -200,22 +231,27 @@ class _MaternalTrackerScreenState extends State<MaternalTrackerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Section 2 - BMI & Weight', style: Theme.of(context).textTheme.titleLarge),
+                      Text('BMI & Weight', style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 8),
                       Row(
                         children: [
                           Expanded(
-                            child: FormBuilderTextField(
+                            child: FormBuilderDropdown<String>(
                               name: 'height',
                               decoration: const InputDecoration(labelText: 'Height (cm)'),
-                              keyboardType: TextInputType.number,
+                              items: List.generate(101, (index) => 100 + index)
+                                  .map((h) => DropdownMenuItem(
+                                        value: h.toString(),
+                                        child: Text('$h cm'),
+                                      ))
+                                  .toList(),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: FormBuilderTextField(
                               name: 'pre_weight',
-                              decoration: const InputDecoration(labelText: 'Pre-wait (kg)'),
+                              decoration: const InputDecoration(labelText: 'Pre-weight (kg)'),
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -240,7 +276,7 @@ class _MaternalTrackerScreenState extends State<MaternalTrackerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Section 3 - Blood Pressure', style: Theme.of(context).textTheme.titleLarge),
+                      Text('Blood Pressure', style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -272,7 +308,7 @@ class _MaternalTrackerScreenState extends State<MaternalTrackerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Section 4 & 5 - Other Readings', style: Theme.of(context).textTheme.titleLarge),
+                      Text('Other Readings', style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 8),
                       FormBuilderTextField(
                         name: 'hemoglobin',
@@ -302,7 +338,7 @@ class _MaternalTrackerScreenState extends State<MaternalTrackerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Section 7 - Urine Test Results', style: Theme.of(context).textTheme.titleLarge),
+                      Text('Urine Test Results', style: Theme.of(context).textTheme.titleLarge),
                       FormBuilderSwitch(
                         name: 'urine_protein',
                         title: const Text('Protein (preeclampsia risk)'),
@@ -326,7 +362,7 @@ class _MaternalTrackerScreenState extends State<MaternalTrackerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Section 8 - Symptoms', style: Theme.of(context).textTheme.titleLarge),
+                      Text('Symptoms', style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 8),
                       FormBuilderTextField(
                         name: 'symptoms',

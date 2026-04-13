@@ -165,16 +165,21 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
     try {
       final prompt = 'ROLE: You are Mamma Buddy, an empathetic pregnancy companion. OBJECTIVE: A user feels "$mood" in week ${user.currentWeek} of pregnancy. Provide reassuring feedback. LIMITATIONS: Use simple language. Be celebratory. EXPECTATIONS: 2 concrete, uplifting coping tips.';
-      final response = await _aiService.chat(conversationHistory: [
-        {'role': 'system', 'content': prompt},
-        {'role': 'user', 'content': mood},
-      ]);
+      final response = await _aiService.chat(
+        conversationHistory: [
+          {'role': 'system', 'content': prompt},
+          {'role': 'user', 'content': 'I am feeling $mood today.'},
+        ],
+        isMoodCheck: true,
+      );
       setState(() {
         _moodFeedback = response;
       });
       await _updateMoodUsage();
     } catch (e) {
-      setState(() => _moodFeedback = "You're doing great! 🌸");
+      if (mounted) {
+        setState(() => _moodFeedback = "Something went wrong. Please try again! 🌸");
+      }
     } finally {
       setState(() => _isAnalyzingMood = false);
     }
