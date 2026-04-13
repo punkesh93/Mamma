@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lottie/lottie.dart';
 import '../providers/auth_provider.dart';
 import '../core/services/openrouter_service.dart';
 import '../core/services/firestore_service.dart';
@@ -92,6 +93,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     super.initState();
     _loadAIInsight();
     _checkMoodUsage();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPersonalizedTips();
+    });
   }
 
   Future<void> _checkMoodUsage() async {
@@ -230,30 +234,35 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     {'label': 'Calm', 'emoji': '🌊', 'color': const Color(0xFFE0F7FA), 'textColor': const Color(0xFF00BCD4)},
   ];
 
-  // ── Discovery Feed Data ─────────────────────────────────────────────────────
-  final List<Map<String, dynamic>> _discoverItems = [
-    {
-      'title': 'Healthy Cravings',
-      'tag': 'Nutrition',
-      'image': 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=500&q=80',
-      'likes': '1.2k',
-      'content': 'How to handle late-night cravings with nutritious snacks...',
-    },
-    {
-      'title': 'Gentle Movement',
-      'tag': 'Wellness',
-      'image': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=500&q=80',
-      'likes': '856',
-      'content': '5 easy yoga poses for each trimester to relieve back pain...',
-    },
-    {
-      'title': 'Sleep Sanctuary',
-      'tag': 'Rest',
-      'image': 'https://images.unsplash.com/photo-1511293076902-1729b8a2662c?w=500&q=80',
-      'likes': '2.4k',
-      'content': 'Setting up your bedroom for the best pregnancy sleep ever...',
-    },
-  ];
+  // ── Personalized Tips ───────────────────────────────────────────────────────
+  String? _personalizedTips;
+  bool _isLoadingTips = false;
+
+  Future<void> _loadPersonalizedTips() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final user = auth.userData;
+    if (user == null || _personalizedTips != null) return;
+    
+    setState(() => _isLoadingTips = true);
+    try {
+      final week = user.isPartnerAccount == true && user.partnerId != null ? 
+        (await FirestoreService().getUser(user.partnerId!))?.currentWeek ?? user.currentWeek : 
+        user.currentWeek;
+      
+      final tips = await _aiService.getPersonalizedTips(week: week, userName: user.name);
+      if (mounted) {
+        setState(() => _personalizedTips = tips);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _personalizedTips = "Tip 1: Rest often.\nTip 2: Stay hydrated.\nTip 3: Listen to your body.");
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingTips = false);
+      }
+    }
+  }
 
   Future<void> _syncPartnerId(UserModel user) async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -341,8 +350,8 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 _buildAIInsightsCard(displayUser),
                 const SizedBox(height: 16),
 
-                // ── Discover Feed (Instagram Style) ──────────────────────
-                _buildDiscoverFeed(),
+                // ── Personalized Tips Section ────────────────────────────
+                _buildPersonalizedTipsSection(displayUser),
                 const SizedBox(height: 16),
 
                 // ── Nutrition Section ────────────────────────────────────
@@ -499,7 +508,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     ).animate().shake(delay: 1.seconds);
   }
 
-  Widget _buildDiscoverFeed() {
+  Widget _buildPersonalizedTipsSection(UserModel user) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -509,93 +518,72 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Discover',
+                'Personalized Tips',
                 style: GoogleFonts.dmSerifDisplay(
                   fontSize: 22,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              Text(
-                'Mama Reel',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  color: _rose,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              const Icon(CupertinoIcons.sparkles, color: _rose, size: 20),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 200,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _discoverItems.length,
-            itemBuilder: (context, index) {
-              final item = _discoverItems[index];
-              return Container(
-                width: 160,
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  image: DecorationImage(
-                    image: NetworkImage(item['image']),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.8),
-                      ],
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
+            ],
+            border: Border.all(color: _rose.withOpacity(0.1)),
+          ),
+          child: _isLoadingTips
+              ? Center(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _rose,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          item['tag'],
-                          style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                      SizedBox(
+                        height: 100,
+                        child: Lottie.network(
+                          'https://lottie.host/81180fd9-5ea0-4cd8-aa92-f0450accb671/C60BqKz979.json', // Cute heartbeat loading animation
+                          errorBuilder: (context, error, stackTrace) => const CircularProgressIndicator(color: _rose),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item['title'],
-                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(CupertinoIcons.heart_fill, color: Colors.white, size: 10),
-                          const SizedBox(width: 4),
-                          Text(
-                            item['likes'],
-                            style: const TextStyle(color: Colors.white70, fontSize: 10),
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 8),
+                      Text('Crafting your weekly AI tips...', style: GoogleFonts.plusJakartaSans(color: _mauve, fontSize: 13, fontStyle: FontStyle.italic)),
                     ],
                   ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    MarkdownBody(
+                      data: _personalizedTips ?? "We couldn't load your tips right now. Please try again later.",
+                      styleSheet: MarkdownStyleSheet(
+                        p: GoogleFonts.plusJakartaSans(fontSize: 14, color: Theme.of(context).colorScheme.onSurface, height: 1.5),
+                        listBullet: TextStyle(color: _rose),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Content for informational purposes only; consult your healthcare provider for medical concerns.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        color: Colors.grey.shade500,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-              );
-            },
-          ),
         ),
       ],
     );

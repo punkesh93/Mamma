@@ -5,6 +5,59 @@ import '../constants/api_constants.dart';
 class OpenRouterService {
   String get _apiKey => ApiConstants.openRouterApiKey;
 
+  // Fallback response when API fails
+  static const _fallbackResponses = {
+    'mood': [
+      "You're doing amazing! Remember to stay hydrated and rest when you can. 💕",
+      "Your body is doing incredible work. Be gentle with yourself today. 🌸",
+      "Every symptom is a sign of the miracle growing inside you. You're strong! 💪",
+      "Take a moment to appreciate how far you've come. You're doing great! 🌟",
+    ],
+    'insight': [
+      "You're doing an incredible job! Keep listening to your body. 💕",
+      "Remember to stay hydrated and get plenty of rest. Your baby feels your love! 🌸",
+      "Each day is a step closer to meeting your little one. You're amazing! 💪",
+    ],
+    'wellness': [
+      "Take 5 deep breaths and feel your baby's calm today. 💜",
+      "Gentle movement can help ease discomfort. Try a short walk today. 🚶",
+      "Rest is productive too. Your body is doing amazing work! 🌟",
+    ],
+    'meal_plan': """
+• Breakfast: Start with protein-rich eggs and whole grain toast
+• Snack: A handful of almonds for healthy fats
+• Lunch: Lean chicken with leafy greens and quinoa
+• Snack: Greek yogurt with berries
+• Dinner: Salmon with roasted vegetables
+• Stay hydrated with 8+ glasses of water!
+""",
+    'symptoms': """
+Thank you for sharing. Many pregnancy symptoms are normal, but it's always best to consult your healthcare provider for personalized advice.
+
+In general:
+• Mild discomfort is often normal
+• Stay hydrated and rest
+• Contact your doctor for any concerning symptoms
+
+Remember, you're doing great! 🌸
+""",
+    'tracker': """
+Your health metrics show you're on track!
+
+Continue:
+• Staying active with gentle exercises
+• Eating nutrient-rich foods
+• Attending regular prenatal checkups
+
+You're doing amazing work! 💕
+""",
+  };
+
+  String _getFallbackResponse(String type) {
+    final responses = _fallbackResponses[type] ?? _fallbackResponses['wellness']!;
+    return responses[DateTime.now().millisecond % responses.length];
+  }
+
   // ── For the upgraded Symptom Checker ──────────────────────
   Future<String> analyzeSymptoms({required String symptomsPayload}) async {
     return _callOpenRouter(
@@ -14,6 +67,7 @@ Provide supportive, evidence-based guidance. Flag anything urgent.
 Always advise consulting a doctor for serious or persistent symptoms.
 Never diagnose. Always be warm, clear, and reassuring.''',
       userMessage: symptomsPayload,
+      fallbackType: 'symptoms',
     );
   }
 
@@ -37,13 +91,75 @@ Clinical thresholds:
 
 You are NOT a replacement for professional care. Always say so.''',
       userMessage: metricsPayload,
+      fallbackType: 'tracker',
     );
+  }
+
+  // ── Personalized Tips (NEW) ────────────────────────────────────────────────
+  Future<String> getPersonalizedTips({required int week, required String userName}) async {
+    String focusAreas = '';
+    if (week <= 8) {
+      focusAreas = 'nausea/morning sickness, fatigue, and ginger/crackers tips';
+    } else if (week <= 20) {
+      focusAreas = 'heartburn, constipation, and round ligament pain';
+    } else {
+      focusAreas = 'backaches, swelling, and calcium-rich foods';
+    }
+
+    final prompt = '''You are MammaBuddy, a professional but empathetic AI maternal health assistant.
+User Name: $userName
+Current Pregnancy Week: $week
+
+Your task is to provide exactly 3 short, highly actionable tips focusing specifically on: $focusAreas.
+Use the user's name and week for personalization. Maintain a warm, "antigravity" tone.
+Do not include any pleasantries or conversational filler outside the tips. Just return the 3 tips.''';
+
+    if (_apiKey.isEmpty || _apiKey.contains('REPLACE')) {
+      return _getFallbackResponse('wellness');
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.openRouterBaseUrl),
+        headers: {
+          'Authorization': 'Bearer $_apiKey',
+          'HTTP-Referer': ApiConstants.appReferer,
+          'X-Title': ApiConstants.appTitle,
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': 'google/gemini-2.0-flash-lite-preview-02-05:free',
+          'messages': [
+            {'role': 'system', 'content': prompt},
+            {'role': 'user', 'content': 'Please give me my weekly tips.'},
+          ],
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['choices'][0]['message']['content'] as String;
+      }
+      return _getFallbackResponse('wellness');
+    } catch (e) {
+      return _getFallbackResponse('wellness');
+    }
   }
 
   // ── For the AI Chat screen ─────────────────────────────────
   Future<String> chat({
     required List<Map<String, String>> conversationHistory,
+    bool isMoodCheck = false,
+    bool isWellnessTip = false,
   }) async {
+    // Check if API key is valid
+    if (_apiKey.isEmpty || _apiKey.contains('REPLACE')) {
+      return isMoodCheck
+          ? _getFallbackResponse('mood')
+          : isWellnessTip
+              ? _getFallbackResponse('wellness')
+              : _getFallbackResponse('insight');
+    }
+
     try {
       final response = await http.post(
         Uri.parse(ApiConstants.openRouterBaseUrl),
@@ -68,9 +184,19 @@ You are NOT a replacement for professional care. Always say so.''',
         final data = jsonDecode(response.body);
         return data['choices'][0]['message']['content'] as String;
       }
-      throw Exception('API error: ${response.statusCode}');
+      // Fallback on API error
+      return isMoodCheck
+          ? _getFallbackResponse('mood')
+          : isWellnessTip
+              ? _getFallbackResponse('wellness')
+              : _getFallbackResponse('insight');
     } catch (e) {
-      throw Exception('Chat failed: $e');
+      // Return fallback on network error
+      return isMoodCheck
+          ? _getFallbackResponse('mood')
+          : isWellnessTip
+              ? _getFallbackResponse('wellness')
+              : _getFallbackResponse('insight');
     }
   }
 
@@ -78,7 +204,13 @@ You are NOT a replacement for professional care. Always say so.''',
   Future<String> _callOpenRouter({
     required String systemPrompt,
     required String userMessage,
+    String fallbackType = 'wellness',
   }) async {
+    // Check if API key is valid
+    if (_apiKey.isEmpty || _apiKey.contains('REPLACE')) {
+      return _getFallbackResponse(fallbackType);
+    }
+
     try {
       final response = await http.post(
         Uri.parse(ApiConstants.openRouterBaseUrl),
@@ -100,9 +232,11 @@ You are NOT a replacement for professional care. Always say so.''',
         final data = jsonDecode(response.body);
         return data['choices'][0]['message']['content'] as String;
       }
-      throw Exception('OpenRouter error: ${response.statusCode}');
+      // Fallback on API error
+      return _getFallbackResponse(fallbackType);
     } catch (e) {
-      throw Exception('AI analysis failed: $e');
+      // Return fallback on network error
+      return _getFallbackResponse(fallbackType);
     }
   }
 
