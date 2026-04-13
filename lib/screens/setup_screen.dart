@@ -26,6 +26,8 @@ class _SetupScreenState extends State<SetupScreen> {
     'plan': 'trial',
     'streakDays': 0,
     'totalPoints': 0,
+    'isPartnerAccount': false,
+    'partnerEmail': '',
   };
 
   final _nameController = TextEditingController();
@@ -125,6 +127,8 @@ class _SetupScreenState extends State<SetupScreen> {
       units: _formData['units'] as String? ?? 'imperial',
       createdAt: DateTime.now().toIso8601String(),
       region: _formData['region'] as String? ?? 'US',
+      isPartnerAccount: _formData['isPartnerAccount'] as bool? ?? false,
+      partnerEmail: _formData['partnerEmail'] as String?,
       dailyGoals: DailyGoals.fromJson(_dailyGoals),
       achievedToday: DailyGoals.fromJson(_achievedToday),
     );
@@ -153,9 +157,54 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
         const SizedBox(height: 32),
 
+        // Account Type
+        Text(
+          'Who is using the app?',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _formData['isPartnerAccount'] = false),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _formData['isPartnerAccount'] == false ? const Color(0xFFE8748A).withOpacity(0.2) : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: _formData['isPartnerAccount'] == false ? const Color(0xFFE8748A) : const Color(0xFFE8748A).withOpacity(0.1)),
+                  ),
+                  child: Center(child: Text('Mother 🌸', style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1A1A3E), fontWeight: FontWeight.bold))),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _formData['isPartnerAccount'] = true),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _formData['isPartnerAccount'] == true ? const Color(0xFFE8748A).withOpacity(0.2) : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: _formData['isPartnerAccount'] == true ? const Color(0xFFE8748A) : const Color(0xFFE8748A).withOpacity(0.1)),
+                  ),
+                  child: Center(child: Text('Partner 🤝', style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1A1A3E), fontWeight: FontWeight.bold))),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
         // Name input
         Text(
-          'What should we call you, Mama?',
+          'What should we call you?',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -263,6 +312,85 @@ class _SetupScreenState extends State<SetupScreen> {
 
   Widget _buildStep2() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isPartner = _formData['isPartnerAccount'] == true;
+
+    if (isPartner) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Connect to Mother',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF1A1A3E),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'Enter her MammaBuddy email address below. We will attempt to link your accounts so you can track her journey.',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            onChanged: (v) => _formData['partnerEmail'] = v.trim(),
+            decoration: InputDecoration(
+              hintText: "Mother's Email",
+              filled: true,
+              fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: const Color(0xFFE8748A).withOpacity(0.1),
+                ),
+              ),
+            ),
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF1A1A3E),
+            ),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 40),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _step = 1),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withOpacity(0.1)
+                          : const Color(0xFF5C5470).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text('Back', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: isDark ? Colors.white : const Color(0xFF5C5470))),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 2,
+                child: GestureDetector(
+                  onTap: () => setState(() => _step = 3),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFFE8748A), Color(0xFFF48FB1)]),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Text('Next', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ).animate().fadeIn().slideX(begin: 0.1, duration: 300.ms);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

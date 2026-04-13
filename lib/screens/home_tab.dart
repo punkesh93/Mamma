@@ -8,6 +8,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
 import '../core/services/openrouter_service.dart';
+import '../core/services/firestore_service.dart';
 import '../models/user_model.dart';
 
 // ── Design tokens matching the app theme ──────────────────────────────────────
@@ -254,6 +255,16 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     },
   ];
 
+  Future<void> _syncPartnerId(UserModel user) async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final service = FirestoreService();
+    final motherAccount = await service.getUserByEmail(user.partnerEmail!);
+    if (motherAccount != null) {
+      await service.linkPartnerAccount(user.uid, user.partnerEmail!, motherAccount.uid);
+      await auth.reloadUser();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -263,9 +274,47 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final week = user.currentWeek.clamp(1, 40);
+    if (user.isPartnerAccount == true) {
+      if (user.partnerEmail != null && user.partnerEmail!.isNotEmpty && user.partnerId == null) {
+        _syncPartnerId(user);
+      }
+      
+      if (user.partnerId != null) {
+        return StreamBuilder<UserModel?>(
+          stream: FirestoreService().streamUser(user.partnerId!),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return _buildDashboard(user, partnerData: snapshot.data!);
+          },
+        );
+      } else {
+        return Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CupertinoIcons.search, size: 48, color: _mauve),
+                const SizedBox(height: 16),
+                Text('Waiting for Mother to join...', style: GoogleFonts.plusJakartaSans(color: _mauve, fontSize: 16)),
+                const SizedBox(height: 8),
+                Text('We are searching for ${user.partnerEmail}. Make sure she signs up with this email or update it in settings.', style: GoogleFonts.plusJakartaSans(color: _mauve, fontSize: 13), textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+
+    return _buildDashboard(user);
+  }
+
+  Widget _buildDashboard(UserModel currentUser, {UserModel? partnerData}) {
+    final displayUser = partnerData ?? currentUser;
+    final week = displayUser.currentWeek.clamp(1, 40);
     final milestone = _getMilestone(week);
-    final daysTracked = user.daysTracked ?? 1;
+    final daysTracked = displayUser.daysTracked ?? 1;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -277,7 +326,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // ── Greeting Header ───────────────────────────────────────
-                _buildHeader(user, week, daysTracked),
+                _buildHeader(currentUser, week, daysTracked),
                 const SizedBox(height: 16),
 
                 // ── Week Block ───────────────────────────────────────────
@@ -285,11 +334,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 const SizedBox(height: 16),
 
                 // ── Daily Check-in Nudge ──────────────────────────────────────────
-                if (_shouldShowCheckIn(user)) _buildCheckInNudge(user),
+                if (_shouldShowCheckIn(displayUser)) _buildCheckInNudge(displayUser),
                 const SizedBox(height: 16),
 
                 // ── AI Insights Card ─────────────────────────────────────
-                _buildAIInsightsCard(user),
+                _buildAIInsightsCard(displayUser),
                 const SizedBox(height: 16),
 
                 // ── Discover Feed (Instagram Style) ──────────────────────
@@ -297,7 +346,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 const SizedBox(height: 16),
 
                 // ── Nutrition Section ────────────────────────────────────
-                _buildNutritionSection(user),
+                _buildNutritionSection(displayUser),
                 const SizedBox(height: 16),
 
                 // ── Quick Meal Log Button ─────────────────────────────────
@@ -309,15 +358,15 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 const SizedBox(height: 16),
 
                 // ── Mood Analyzer ─────────────────────────────────────────
-                _buildMoodAnalyzer(user),
+                _buildMoodAnalyzer(displayUser),
                 const SizedBox(height: 16),
 
                 // ── Weekly Progress ──────────────────────────────────────
-                _buildWeeklyProgress(user),
+                _buildWeeklyProgress(displayUser),
                 const SizedBox(height: 16),
 
                 // ── Partner Widget ────────────────────────────────────────
-                _buildPartnerWidget(user),
+                _buildPartnerWidget(currentUser),
                 const SizedBox(height: 16),
 
                 // ── Doctor Reports ───────────────────────────────────────

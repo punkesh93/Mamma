@@ -77,7 +77,7 @@ class FirestoreService {
   }
 
   // ── Doctor Reports (NEW) ────────────────────────────────────────────────
-  
+
   Future<void> saveDoctorReport(String userId, Map<String, dynamic> reportData) async {
     await _db.collection('users').doc(userId).collection('doctor_reports').doc(reportData['id']).set(reportData);
   }
@@ -89,5 +89,56 @@ class FirestoreService {
         .collection('doctor_reports')
         .orderBy('timestamp', descending: true)
         .snapshots();
+  }
+
+  // ── Meal Logging ──────────────────────────────────────────────────────────
+
+  Future<void> logMeal(String userId, dynamic meal) async {
+    await _db.collection('users').doc(userId).collection('meals').add(meal.toJson());
+  }
+
+  Future<List<dynamic>> getTodayMeals(String userId) async {
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+
+    final snapshot = await _db
+        .collection('users')
+        .doc(userId)
+        .collection('meals')
+        .where('timestamp', isGreaterThan: startOfDay.toIso8601String())
+        .where('timestamp', isLessThan: endOfDay.toIso8601String())
+        .get();
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      data['id'] = doc.id;
+      return data;
+    }).toList();
+  }
+
+  Future<UserModel?> getUserByEmail(String email) async {
+    final query = await _db.collection('users').where('email', isEqualTo: email.toLowerCase()).limit(1).get();
+    if (query.docs.isNotEmpty) {
+      return UserModel.fromJson(query.docs.first.data());
+    }
+    return null;
+  }
+
+  // ── Partner Mode ─────────────────────────────────────────────────────────
+
+  Future<void> linkPartnerAccount(String userId, String partnerEmail, String partnerId) async {
+    await _db.collection('users').doc(userId).update({
+      'partnerEmail': partnerEmail,
+      'partnerId': partnerId,
+    });
+  }
+
+  Future<UserModel?> getPartnerData(String partnerId) async {
+    final docSnap = await _db.collection('users').doc(partnerId).get();
+    if (docSnap.exists && docSnap.data() != null) {
+      return UserModel.fromJson(docSnap.data()!);
+    }
+    return null;
   }
 }
