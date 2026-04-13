@@ -128,7 +128,7 @@ Do not include any pleasantries or conversational filler outside the tips. Just 
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': 'google/gemini-2.0-flash-lite-preview-02-05:free',
+          'model': 'openrouter/free',
           'messages': [
             {'role': 'system', 'content': prompt},
             {'role': 'user', 'content': 'Please give me my weekly tips.'},
