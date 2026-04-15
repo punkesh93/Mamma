@@ -143,661 +143,493 @@ class _SetupScreenState extends State<SetupScreen> {
 
   Widget _buildStep1() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    const rose = Color(0xFFE8748A);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           "Let's get to know you!",
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
+          style: GoogleFonts.dmSerifDisplay(
+            fontSize: 32,
             color: isDark ? Colors.white : const Color(0xFF1A1A3E),
           ),
         ),
-        const SizedBox(height: 32),
+        Text(
+          "Personalize your experience with MammaBuddy",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
+          ),
+        ),
+        const SizedBox(height: 48),
 
         // Account Type
-        Text(
-          'Who is using the app?',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
-          ),
-        ),
-        const SizedBox(height: 8),
+        _buildSubtitle('WHO IS USING THE APP?', isDark),
+        const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() => _formData['isPartnerAccount'] = false),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: _formData['isPartnerAccount'] == false ? const Color(0xFFE8748A).withOpacity(0.2) : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: _formData['isPartnerAccount'] == false ? const Color(0xFFE8748A) : const Color(0xFFE8748A).withOpacity(0.1)),
-                  ),
-                  child: Center(child: Text('Mother 🌸', style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1A1A3E), fontWeight: FontWeight.bold))),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() => _formData['isPartnerAccount'] = true),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: _formData['isPartnerAccount'] == true ? const Color(0xFFE8748A).withOpacity(0.2) : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: _formData['isPartnerAccount'] == true ? const Color(0xFFE8748A) : const Color(0xFFE8748A).withOpacity(0.1)),
-                  ),
-                  child: Center(child: Text('Partner 🤝', style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1A1A3E), fontWeight: FontWeight.bold))),
-                ),
-              ),
-            ),
+            Expanded(child: _buildRoleCard('Mother 🌸', false, isDark)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildRoleCard('Partner 🤝', true, isDark)),
           ],
-        ),
-        const SizedBox(height: 24),
+        ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
+        const SizedBox(height: 32),
 
         // Name input
-        Text(
-          'What should we call you?',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _nameController,
-          onChanged: (v) => _formData['name'] = v,
-          decoration: InputDecoration(
-            hintText: 'Your name',
-            filled: true,
-            fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: const Color(0xFFE8748A).withOpacity(0.1),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFFE8748A), width: 2),
-            ),
-          ),
-          style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF1A1A3E),
-          ),
-        ),
-        const SizedBox(height: 24),
+        _buildSubtitle('WHAT SHOULD WE CALL YOU?', isDark),
+        const SizedBox(height: 12),
+        _buildNameField(isDark),
+        const SizedBox(height: 32),
 
         // Region selector
-        Text(
-          'Region & Units',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFFE8748A).withOpacity(0.1),
-            ),
-          ),
-          child: DropdownButtonFormField<String>(
-            initialValue: _formData['region'] as String? ?? 'US',
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            items: const [
-              DropdownMenuItem(value: 'US', child: Text('United States (Oz / Lb / USD)')),
-              DropdownMenuItem(value: 'EU', child: Text('Europe (Gm / Kg / EUR)')),
-              DropdownMenuItem(value: 'IN', child: Text('India (Gm / Kg / INR)')),
-            ],
-            onChanged: (val) {
-              setState(() {
-                _formData['region'] = val;
-                _formData['country'] = val;
-                _formData['units'] = val == 'US' ? 'imperial' : 'metric';
-              });
-            },
-          ),
-        ),
-        const SizedBox(height: 40),
+        _buildSubtitle('REGION & UNITS', isDark),
+        const SizedBox(height: 12),
+        _buildRegionSelector(isDark),
+        const SizedBox(height: 48),
 
         // Continue button
-        GestureDetector(
-          onTap: () => setState(() => _step = 2),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFE8748A), Color(0xFFF48FB1)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFE8748A).withOpacity(0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Text(
-              'Continue',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
+        _buildPrimaryButton('Continue', () => setState(() => _step = 2), rose),
+      ],
+    ).animate().fadeIn(duration: 500.ms);
+  }
+
+  Widget _buildRoleCard(String label, bool isPartner, bool isDark) {
+    final isSelected = _formData['isPartnerAccount'] == isPartner;
+    const rose = Color(0xFFE8748A);
+
+    return GestureDetector(
+      onTap: () => setState(() => _formData['isPartnerAccount'] = isPartner),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? rose.withOpacity(0.1) 
+              : (isDark ? Colors.white.withOpacity(0.02) : Colors.white),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isSelected ? rose : (isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected ? [] : [
+            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          children: [
+            Text(label, style: GoogleFonts.plusJakartaSans(
+              color: isSelected ? rose : (isDark ? Colors.white70 : const Color(0xFF1A1A3E)),
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+              fontSize: 16,
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubtitle(String text, bool isDark) {
+    return Text(
+      text,
+      style: GoogleFonts.plusJakartaSans(
+        fontSize: 10,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.5,
+        color: isDark ? Colors.white38 : const Color(0xFF5C5470).withOpacity(0.6),
+      ),
+    );
+  }
+
+  Widget _buildNameField(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.02) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+      ),
+      child: TextField(
+        controller: _nameController,
+        onChanged: (v) => _formData['name'] = v,
+        style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white : const Color(0xFF1A1A3E)),
+        decoration: InputDecoration(
+          hintText: 'Enter your name',
+          hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white24 : Colors.grey, fontSize: 14),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          border: InputBorder.none,
+          prefixIcon: Icon(Icons.person_outline, color: isDark ? Colors.white38 : Colors.grey, size: 20),
+        ),
+      ),
+    ).animate().fadeIn(delay: 300.ms).slideX(begin: 0.05);
+  }
+
+  Widget _buildRegionSelector(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.02) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _formData['region'] as String? ?? 'US',
+        style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white : const Color(0xFF1A1A3E)),
+        decoration: const InputDecoration(border: InputBorder.none),
+        dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+        items: const [
+          DropdownMenuItem(value: 'US', child: Text('United States (Oz / Lb / USD)')),
+          DropdownMenuItem(value: 'EU', child: Text('Europe (Gm / Kg / EUR)')),
+          DropdownMenuItem(value: 'IN', child: Text('India (Gm / Kg / INR)')),
+        ],
+        onChanged: (val) {
+          setState(() {
+            _formData['region'] = val;
+            _formData['units'] = val == 'US' ? 'imperial' : 'metric';
+          });
+        },
+      ),
+    ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.05);
+  }
+
+  Widget _buildPrimaryButton(String label, VoidCallback onTap, Color color) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(color: color.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
             ),
           ),
         ),
-      ],
-    ).animate().fadeIn().slideX(begin: 0.1, duration: 300.ms);
+      ),
+    ).animate().fadeIn(delay: 500.ms);
   }
 
   Widget _buildStep2() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPartner = _formData['isPartnerAccount'] == true;
-
-    if (isPartner) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Connect to Mother',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : const Color(0xFF1A1A3E),
-            ),
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'Enter her MammaBuddy email address below. We will attempt to link your accounts so you can track her journey.',
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            onChanged: (v) => _formData['partnerEmail'] = v.trim(),
-            decoration: InputDecoration(
-              hintText: "Mother's Email",
-              filled: true,
-              fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: const Color(0xFFE8748A).withOpacity(0.1),
-                ),
-              ),
-            ),
-            style: TextStyle(
-              color: isDark ? Colors.white : const Color(0xFF1A1A3E),
-            ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 40),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _step = 1),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withOpacity(0.1)
-                          : const Color(0xFF5C5470).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text('Back', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: isDark ? Colors.white : const Color(0xFF5C5470))),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 2,
-                child: GestureDetector(
-                  onTap: () => setState(() => _step = 3),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFFE8748A), Color(0xFFF48FB1)]),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Text('Next', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ).animate().fadeIn().slideX(begin: 0.1, duration: 300.ms);
-    }
+    const rose = Color(0xFFE8748A);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Your Pregnancy Details',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
+          isPartner ? 'Link Accounts' : 'Timeline Details',
+          style: GoogleFonts.dmSerifDisplay(
+            fontSize: 32,
             color: isDark ? Colors.white : const Color(0xFF1A1A3E),
           ),
         ),
-        const SizedBox(height: 32),
-
-        // Last period date
         Text(
-          'When was the first day of your last period?',
-          style: TextStyle(
+          isPartner ? "Connect with her MammaBuddy profile" : "Tell us about your miracle journey",
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
-            fontWeight: FontWeight.w500,
             color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
           ),
         ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now().subtract(const Duration(days: 56)),
-              firstDate: DateTime.now().subtract(const Duration(days: 280)),
-              lastDate: DateTime.now(),
-              builder: (context, child) {
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.dark(
-                      primary: const Color(0xFFE8748A),
-                      onPrimary: Colors.white,
-                      surface: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                      onSurface: isDark ? Colors.white : Colors.black87,
-                    ),
-                    textTheme: TextTheme(
-                      headlineLarge: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      titleLarge: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontSize: 18,
-                      ),
-                      bodyLarge: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.black54,
-                        fontSize: 16,
-                      ),
-                      bodyMedium: TextStyle(
-                        color: isDark ? Colors.white60 : Colors.black45,
-                        fontSize: 14,
-                      ),
-                      labelSmall: TextStyle(
-                        color: isDark ? Colors.white54 : Colors.black38,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  child: child!,
-                );
-              },
-            );
-            if (date != null) {
-              setState(() {
-                _formData['lastPeriodDate'] = date.toIso8601String().split('T')[0];
-              });
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFE8748A).withOpacity(0.1),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _formData['lastPeriodDate']?.isNotEmpty == true
-                      ? _formData['lastPeriodDate']
-                      : 'Select date',
-                  style: TextStyle(
-                    color: _formData['lastPeriodDate']?.isNotEmpty == true
-                        ? (isDark ? Colors.white : const Color(0xFF1A1A3E))
-                        : (isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470)),
-                  ),
-                ),
-                const Icon(Icons.calendar_today, color: Color(0xFFE8748A), size: 20),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 48),
 
-        // Test date (optional)
-        Text(
-          'When did you get your positive test? (Optional)',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
-          ),
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime.now().subtract(const Duration(days: 280)),
-              lastDate: DateTime.now(),
-              builder: (context, child) {
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.dark(
-                      primary: const Color(0xFFE8748A),
-                      onPrimary: Colors.white,
-                      surface: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                      onSurface: isDark ? Colors.white : Colors.black87,
-                    ),
-                    textTheme: TextTheme(
-                      headlineLarge: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      titleLarge: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontSize: 18,
-                      ),
-                      bodyLarge: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.black54,
-                        fontSize: 16,
-                      ),
-                      bodyMedium: TextStyle(
-                        color: isDark ? Colors.white60 : Colors.black45,
-                        fontSize: 14,
-                      ),
-                      labelSmall: TextStyle(
-                        color: isDark ? Colors.white54 : Colors.black38,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  child: child!,
-                );
-              },
-            );
-            if (date != null) {
-              setState(() {
-                _formData['testDate'] = date.toIso8601String().split('T')[0];
-              });
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFE8748A).withOpacity(0.1),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _formData['testDate']?.isNotEmpty == true
-                      ? _formData['testDate']
-                      : 'Select date',
-                  style: TextStyle(
-                    color: _formData['testDate']?.isNotEmpty == true
-                        ? (isDark ? Colors.white : const Color(0xFF1A1A3E))
-                        : (isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470)),
-                  ),
-                ),
-                const Icon(Icons.calendar_today, color: Color(0xFFE8748A), size: 20),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 40),
+        if (isPartner) ...[
+          _buildSubtitle("MOTHER'S EMAIL", isDark),
+          const SizedBox(height: 12),
+          _buildTextField('partnerEmail', "Enter her email address", Icons.alternate_email, isDark),
+        ] else ...[
+          _buildSubtitle('LAST PERIOD DATE', isDark),
+          const SizedBox(height: 12),
+          _buildDatePicker('lastPeriodDate', isDark),
+          const SizedBox(height: 32),
+          _buildSubtitle('POSITIVE TEST DATE (OPTIONAL)', isDark),
+          const SizedBox(height: 12),
+          _buildDatePicker('testDate', isDark),
+        ],
 
-        // Navigation buttons
+        const SizedBox(height: 64),
         Row(
           children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() => _step = 1),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.1)
-                        : const Color(0xFF5C5470).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    'Back',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white : const Color(0xFF5C5470),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ),
+            Expanded(child: _buildSecondaryButton('Back', () => setState(() => _step = 1), isDark)),
             const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: GestureDetector(
-                onTap: () => setState(() => _step = 3),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFE8748A), Color(0xFFF48FB1)],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFE8748A).withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'Next',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+            Expanded(flex: 2, child: _buildPrimaryButton('Next Step', () => setState(() => _step = 3), rose)),
+          ],
+        ),
+      ],
+    ).animate().fadeIn();
+  }
+
+  Widget _buildTextField(String key, String hint, IconData icon, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.02) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+      ),
+      child: TextField(
+        onChanged: (v) => _formData[key] = v.trim(),
+        style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white : const Color(0xFF1A1A3E)),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white24 : Colors.grey, fontSize: 14),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          border: InputBorder.none,
+          prefixIcon: Icon(icon, color: isDark ? Colors.white38 : Colors.grey, size: 20),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePicker(String key, bool isDark) {
+    final value = _formData[key] as String? ?? '';
+    return GestureDetector(
+      onTap: () async {
+        final date = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now().subtract(const Duration(days: 56)),
+          firstDate: DateTime.now().subtract(const Duration(days: 300)),
+          lastDate: DateTime.now(),
+        );
+        if (date != null) {
+          setState(() {
+            _formData[key] = date.toIso8601String().split('T')[0];
+          });
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withOpacity(0.02) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today, color: isDark ? Colors.white38 : Colors.grey, size: 18),
+            const SizedBox(width: 12),
+            Text(
+              value.isEmpty ? 'Select Date' : value,
+              style: GoogleFonts.plusJakartaSans(
+                color: value.isEmpty ? (isDark ? Colors.white24 : Colors.grey) : (isDark ? Colors.white : const Color(0xFF1A1A3E)),
+                fontSize: 14,
               ),
             ),
           ],
         ),
-      ],
-    ).animate().fadeIn().slideX(begin: 0.1, duration: 300.ms);
+      ),
+    );
+  }
+
+  Widget _buildSecondaryButton(String label, VoidCallback onTap, bool isDark) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : const Color(0xFF5C5470),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildStep3() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isQuietMode = _formData['quietMode'] as bool? ?? false;
+    const rose = Color(0xFFE8748A);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Privacy First',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
+          'Almost There',
+          style: GoogleFonts.dmSerifDisplay(
+            fontSize: 32,
             color: isDark ? Colors.white : const Color(0xFF1A1A3E),
           ),
         ),
-        const SizedBox(height: 16),
         Text(
-          'Enable Quiet Mode to keep your journey private. This changes the app icon and hides pregnancy content from notifications.',
-          style: TextStyle(
+          "Complete your setup and start tracking",
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 48),
 
-        // Quiet Mode Toggle
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _formData['quietMode'] = !isQuietMode;
-            });
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isQuietMode
-                  ? const Color(0xFFE8748A).withOpacity(0.05)
-                  : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isQuietMode
-                    ? const Color(0xFFE8748A)
-                    : const Color(0xFFE8748A).withOpacity(0.1),
-                width: isQuietMode ? 2 : 1,
+        _buildSubtitle('PRIVACY SETTINGS', isDark),
+        const SizedBox(height: 12),
+        _buildQuietModeToggle(isDark),
+        const SizedBox(height: 32),
+
+        _buildSubtitle('YOUR WELCOME GIFT', isDark),
+        const SizedBox(height: 12),
+        _buildTrialCard(isDark),
+
+        const SizedBox(height: 64),
+        Row(
+          children: [
+            Expanded(child: _buildSecondaryButton('Back', () => setState(() => _step = 2), isDark)),
+            const SizedBox(width: 16),
+            Expanded(flex: 2, child: _buildPrimaryButton('Experience MammaBuddy', _handleComplete, rose)),
+          ],
+        ),
+      ],
+    ).animate().fadeIn();
+  }
+
+  Widget _buildQuietModeToggle(bool isDark) {
+    final isQuiet = _formData['quietMode'] as bool? ?? false;
+    const rose = Color(0xFFE8748A);
+
+    return GestureDetector(
+      onTap: () => setState(() => _formData['quietMode'] = !isQuiet),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isQuiet ? rose.withOpacity(0.1) : (isDark ? Colors.white.withOpacity(0.02) : Colors.white),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: isQuiet ? rose : (isDark ? Colors.white10 : Colors.black.withOpacity(0.05)), width: isQuiet ? 2 : 1),
+        ),
+        child: Row(
+          children: [
+            Icon(isQuiet ? Icons.visibility_off : Icons.visibility, color: isQuiet ? rose : Colors.grey),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Quiet Mode', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: isQuiet ? rose : (isDark ? Colors.white : const Color(0xFF1A1A3E)))),
+                  Text('Discreet icon and private notifications', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? Colors.white38 : Colors.grey)),
+                ],
               ),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Enable Quiet Mode',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF1A1A3E),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'You can change this anytime in settings',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark
-                              ? const Color(0xFFB0A8C0)
-                              : const Color(0xFF5C5470),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isQuietMode)
-                  const Icon(
-                    CupertinoIcons.check_mark_circled,
-                    color: Color(0xFFE8748A),
-                    size: 24,
-                  ),
-              ],
-            ),
-          ),
+          ],
         ),
-        const SizedBox(height: 24),
+      ),
+    );
+  }
 
-        // Trial Activation Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [const Color(0xFF6B4B9A).withOpacity(0.1), const Color(0xFFE8748A).withOpacity(0.1)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF6B4B9A).withOpacity(0.2)),
-          ),
-          child: Column(
+  Widget _buildTrialCard(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [const Color(0xFF2E8B72).withOpacity(0.15), const Color(0xFF6B4B9A).withOpacity(0.15)]),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFF2E8B72).withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Row(
             children: [
-              Row(
+              const Text('🎁', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('🎁', style: TextStyle(fontSize: 24)),
-                  const SizedBox(width: 12),
+                  Text('7-Day Premium Trial', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900, color: isDark ? Colors.white : const Color(0xFF1A1A3E))),
+                  Text('No credit card required today!', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? Colors.white54 : Colors.black54)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Explore full AI health tracking, partner mode, and all premium recipes and wellness tips instantly.',
+            style: GoogleFonts.plusJakartaSans(fontSize: 11, height: 1.5, color: isDark ? Colors.white38 : Colors.black54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Background blobs
+          Positioned(
+            top: -150,
+            right: -100,
+            child: _buildBgBlob(const Color(0xFFE8748A).withOpacity(0.1)),
+          ),
+          Positioned(
+            bottom: -150,
+            left: -100,
+            child: _buildBgBlob(const Color(0xFF2E8B72).withOpacity(0.1)),
+          ),
+
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                children: [
+                  // Progress
+                  Row(
+                    children: List.generate(3, (i) {
+                      final isActive = i + 1 <= _step;
+                      return Expanded(
+                        child: Container(
+                          height: 6,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: isActive ? const Color(0xFFE8748A) : (isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 64),
+
+                  // Step Content
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome Gift!',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF1A1A3E),
-                          ),
-                        ),
-                        Text(
-                          '7-Day Premium Trial Activated',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
-                          ),
-                        ),
-                      ],
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: _step == 1
+                          ? _buildStep1()
+                          : _step == 2
+                              ? _buildStep2()
+                              : _buildStep3(),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                'Enjoy unlimited AI chats, meal analysis, and partner mode for 7 days. No payment required today!',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark ? const Color(0xFFB0A8C0) : const Color(0xFF5C5470),
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
+            ),
           ),
-        ).animate().shimmer(delay: 1.seconds, duration: 2.seconds).scale(delay: 500.ms),
-        const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
 
-        // Navigation buttons
-        Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() => _step = 2),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.1)
-                        : const Color(0xFF5C5470).withOpacity(0.1),
+  Widget _buildBgBlob(Color color) {
+    return Container(
+      width: 400,
+      height: 400,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+}
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(

@@ -255,72 +255,106 @@ class _NutritionTabState extends State<NutritionTab> {
     final onSurfaceColor = theme.colorScheme.onSurface;
 
     return Scaffold(
-      backgroundColor: isDark ? theme.scaffoldBackgroundColor : const Color(0xFFFAFBFA),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Smart Nutrition 🥗',
-              style: GoogleFonts.dmSerifDisplay(
-                fontSize: 28, 
-                color: isDark ? Colors.white : _ink,
-              ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: Stack(
+        children: [
+          // Background Blobs for brand consistency
+          Positioned(
+            top: -100,
+            left: -50,
+            child: _buildBgBlob(const Color(0xFF2A7A90).withOpacity(isDark ? 0.08 : 0.05)),
+          ),
+          Positioned(
+            bottom: 100,
+            right: -50,
+            child: _buildBgBlob(const Color(0xFF2E8B72).withOpacity(isDark ? 0.08 : 0.05)),
+          ),
+
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 140),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Smart Nutrition 🥗',
+                  style: GoogleFonts.dmSerifDisplay(
+                    fontSize: 28, 
+                    color: isDark ? Colors.white : _ink,
+                  ),
+                ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.05),
+                const SizedBox(height: 4),
+                Text(
+                  'Fueling you and your little one',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14, 
+                    fontStyle: FontStyle.italic, 
+                    color: isDark ? Colors.white70 : const Color(0xFF5C5470),
+                  ),
+                ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideX(begin: -0.05),
+                const SizedBox(height: 32),
+
+                // Today's Meal Logging
+                _buildMealLoggingSection(isDark, surfaceColor, onSurfaceColor, user)
+                    .animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
+                const SizedBox(height: 24),
+
+                // Daily Progress Card
+                _buildDailySummaryCard(user, isDark, theme)
+                    .animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
+                const SizedBox(height: 24),
+
+                // Today's Meals
+                if (_todayMeals.isNotEmpty) ...[
+                  Text(
+                    'Today\'s Meals',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18, 
+                      fontWeight: FontWeight.bold, 
+                      color: isDark ? Colors.white : _ink,
+                    ),
+                  ).animate().fadeIn(delay: 400.ms),
+                  const SizedBox(height: 12),
+                  _buildTodayMealsList(isDark)
+                      .animate().fadeIn(delay: 450.ms),
+                  const SizedBox(height: 24),
+                ],
+
+                // Nutrient Breakdown
+                Text(
+                  'Key Nutrients',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18, 
+                    fontWeight: FontWeight.bold, 
+                    color: isDark ? Colors.white : _ink,
+                  ),
+                ).animate().fadeIn(delay: 500.ms),
+                const SizedBox(height: 12),
+                _buildNutrientGrid(user, isDark)
+                    .animate().fadeIn(delay: 550.ms),
+                const SizedBox(height: 24),
+
+                // AI Meal Plan Section
+                _buildAIMealPlanSection(isDark, theme)
+                    .animate().fadeIn(delay: 600.ms),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Fueling you and your little one',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14, 
-                fontStyle: FontStyle.italic, 
-                color: isDark ? Colors.white70 : const Color(0xFF5C5470),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Today's Meal Logging
-            _buildMealLoggingSection(isDark, surfaceColor, onSurfaceColor, user),
-            const SizedBox(height: 24),
-
-            // Daily Progress Card
-            _buildDailySummaryCard(user, isDark, theme),
-            const SizedBox(height: 24),
-
-            // Today's Meals
-            if (_todayMeals.isNotEmpty) ...[
-              Text(
-                'Today\'s Meals',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18, 
-                  fontWeight: FontWeight.bold, 
-                  color: isDark ? Colors.white : _ink,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildTodayMealsList(isDark),
-              const SizedBox(height: 24),
-            ],
-
-            // Nutrient Breakdown
-            Text(
-              'Key Nutrients',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18, 
-                fontWeight: FontWeight.bold, 
-                color: isDark ? Colors.white : _ink,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildNutrientGrid(user, isDark),
-            const SizedBox(height: 24),
-
-            // AI Meal Plan Section
-            _buildAIMealPlanSection(isDark, theme),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+
+  Widget _buildBgBlob(Color color) {
+    return Container(
+      width: 300,
+      height: 300,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+     .moveY(begin: -20, end: 20, duration: 4.seconds, curve: Curves.easeInOut)
+     .moveX(begin: -10, end: 10, duration: 3.seconds, curve: Curves.easeInOut);
   }
 
   Widget _buildMealLoggingSection(bool isDark, Color surfaceColor, Color onSurfaceColor, UserModel user) {

@@ -20,21 +20,33 @@ class TrackerProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Build a payload for the AI to analyze
+      // Calculate BMI and Weight Gain
+      double heightM = record.heightCm / 100;
+      double preBmi = record.prePregnancyWeightKg / (heightM * heightM);
+      double weightGain = record.currentWeightKg - record.prePregnancyWeightKg;
+
       final payload = '''
-        Patient Data:
-        - Gestational Age: \${record.gestationalWeeks} weeks
-        - Height: \${record.heightCm} cm
-        - Pre-pregnancy weight: \${record.prePregnancyWeightKg} kg
-        - Current weight: \${record.currentWeightKg} kg
-        - Blood Pressure: \${record.bloodPressureSystolic}/\${record.bloodPressureDiastolic}
-        - Hemoglobin: \${record.hemoglobin} g/dL
-        - Fundal Height: \${record.fundalHeightCm} cm
-        - Fetal Heart Rate: \${record.fetalHeartRateBpm} bpm
-        - Urine Protein: \${record.hasProtein}
-        - Urine Sugar: \${record.hasSugar}
-        - Urine Bacteria: \${record.hasBacteria}
-        - Symptoms: \${record.symptomsDescription}
+        USER PROFILE:
+        - Gestational Age: ${record.gestationalWeeks} weeks
+        - Height: ${record.heightCm} cm
+        - Pre-pregnancy weight: ${record.prePregnancyWeightKg} kg
+        - Pre-pregnancy BMI: ${preBmi.toStringAsFixed(1)}
+        - Current weight: ${record.currentWeightKg} kg
+        - Total weight gain: ${weightGain.toStringAsFixed(1)} kg
+        
+        VITALS & CLINICAL:
+        - Blood Pressure: ${record.bloodPressureSystolic}/${record.bloodPressureDiastolic}
+        - Hemoglobin: ${record.hemoglobin ?? 'N/A'} g/dL
+        - Fundal Height: ${record.fundalHeightCm ?? 'N/A'} cm
+        - FHR (Fetal Heart Rate): ${record.fetalHeartRateBpm ?? 'N/A'} bpm
+        
+        SCREENINGS:
+        - Urine Protein: ${record.hasProtein ? 'PRESENT' : 'ABSENT'}
+        - Urine Sugar: ${record.hasSugar ? 'PRESENT' : 'ABSENT'}
+        - Urine Bacteria: ${record.hasBacteria ? 'PRESENT' : 'ABSENT'}
+        
+        SYMPTOMS:
+        - ${record.symptomsDescription.isEmpty ? "None reported" : record.symptomsDescription}
       ''';
 
       final aiAnalysis = await _openRouterService.analyzeMaternalMetrics(metricsPayload: payload);

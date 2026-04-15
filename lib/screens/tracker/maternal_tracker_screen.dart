@@ -93,330 +93,366 @@ class _MaternalTrackerScreenState extends State<MaternalTrackerScreen> {
   @override
   Widget build(BuildContext context) {
     final tracker = Provider.of<TrackerProvider>(context);
+    final user = Provider.of<AuthProvider>(context).userData;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // Design Tokens
+    const sage = Color(0xFF2E8B72);
+    const rose = Color(0xFFE8748A);
+    const sky = Color(0xFF2A7A90);
+    const ink = Color(0xFF1A1A3E);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Maternal Tracker')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: FormBuilder(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6B4B9A).withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Gestational Age', style: GoogleFonts.dmSerifDisplay(fontSize: 24, color: const Color(0xFF1A1A3E))),
-                    const SizedBox(height: 12),
-                    // Educational Info Card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8748A).withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE8748A).withOpacity(0.2)),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.info_outline, color: Color(0xFFE8748A), size: 20),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Gestational age is simply how far along you are. It is calculated from the first day of your Last Menstrual Period (LMP) — not the day of conception!',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
-                                color: const Color(0xFF5C5470),
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Date Picker
-                    FormBuilderDateTimePicker(
-                      name: 'lmp_date',
-                      inputType: InputType.date,
-                      initialDate: DateTime.now().subtract(const Duration(days: 56)),
-                      firstDate: DateTime.now().subtract(const Duration(days: 300)),
-                      lastDate: DateTime.now(),
-                      decoration: InputDecoration(
-                        labelText: 'Select LMP Date',
-                        labelStyle: GoogleFonts.plusJakartaSans(color: const Color(0xFF6B4B9A)),
-                        prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF6B4B9A)),
-                        filled: true,
-                        fillColor: const Color(0xFF6B4B9A).withOpacity(0.05),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: const Color(0xFF6B4B9A).withOpacity(0.5), width: 1.5),
-                        ),
-                      ),
-                      onChanged: (val) {
-                        setState(() {}); // trigger rebuild so builder can calculate
-                      },
-                      validator: FormBuilderValidators.required(),
-                    ),
-                    // Dynamic calculations
-                    Builder(
-                      builder: (context) {
-                        final val = _formKey.currentState?.fields['lmp_date']?.value as DateTime?;
-                        if (val == null) return const SizedBox.shrink();
-                        
-                        int weeks = _calculateGestationalWeeks(val);
-                        DateTime due = val.add(const Duration(days: 280));
-                        String formattedDue = "${due.month}/${due.day}/${due.year}";
-                        
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(color: const Color(0xFF6B4B9A).withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
-                                  child: Column(
-                                    children: [
-                                      Text('Current Week', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF5C5470))),
-                                      const SizedBox(height: 4),
-                                      Text('Week $weeks', style: GoogleFonts.dmSerifDisplay(fontSize: 18, color: const Color(0xFF6B4B9A))),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(color: const Color(0xFF2E8B72).withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
-                                  child: Column(
-                                    children: [
-                                      Text('Est. Due Date', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF5C5470))),
-                                      const SizedBox(height: 4),
-                                      Text(formattedDue, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF2E8B72))),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    ),
-                  ],
-                ),
-              ),
-
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('BMI & Weight', style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: FormBuilderDropdown<String>(
-                              name: 'height',
-                              decoration: const InputDecoration(labelText: 'Height (cm)'),
-                              items: List.generate(101, (index) => 100 + index)
-                                  .map((h) => DropdownMenuItem(
-                                        value: h.toString(),
-                                        child: Text('$h cm'),
-                                      ))
-                                  .toList(),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: FormBuilderTextField(
-                              name: 'pre_weight',
-                              decoration: const InputDecoration(labelText: 'Pre-weight (kg)'),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: FormBuilderTextField(
-                              name: 'current_weight',
-                              decoration: const InputDecoration(labelText: 'Current (kg)'),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Blood Pressure', style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: FormBuilderTextField(
-                              name: 'bp_systolic',
-                              decoration: const InputDecoration(labelText: 'Systolic'),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: FormBuilderTextField(
-                              name: 'bp_diastolic',
-                              decoration: const InputDecoration(labelText: 'Diastolic'),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Other Readings', style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      FormBuilderTextField(
-                        name: 'hemoglobin',
-                        decoration: const InputDecoration(labelText: 'Hemoglobin (g/dL)'),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 8),
-                      FormBuilderTextField(
-                        name: 'fundal_height',
-                        decoration: const InputDecoration(labelText: 'Fundal Height (cm)'),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 8),
-                      FormBuilderTextField(
-                        name: 'fhr',
-                        decoration: const InputDecoration(labelText: 'Fetal Heart Rate (bpm)'),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Urine Test Results', style: Theme.of(context).textTheme.titleLarge),
-                      FormBuilderSwitch(
-                        name: 'urine_protein',
-                        title: const Text('Protein (preeclampsia risk)'),
-                      ),
-                      FormBuilderSwitch(
-                        name: 'urine_sugar',
-                        title: const Text('Sugar (gestational diabetes risk)'),
-                      ),
-                      FormBuilderSwitch(
-                        name: 'urine_bacteria',
-                        title: const Text('Bacteria (infection risk)'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Symptoms', style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      FormBuilderTextField(
-                        name: 'symptoms',
-                        maxLines: 4,
-                        decoration: const InputDecoration(
-                          hintText: 'Describe symptoms: cramping, spotting, headaches...',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: tracker.isAnalyzing ? null : _submitData,
-                icon: tracker.isAnalyzing
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.analytics),
-                label: const Text('Analyze with MammaAI 🤱'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(16),
-                ),
-              ),
-
-              if (tracker.lastAiResponse != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: Card(
-                    color: Theme.of(context).primaryColorLight,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('AI Analysis', style: Theme.of(context).textTheme.titleLarge),
-                          const SizedBox(height: 8),
-                          MarkdownBody(
-                            data: tracker.lastAiResponse!,
-                            styleSheet: MarkdownStyleSheet(
-                              p: GoogleFonts.plusJakartaSans(fontSize: 14, color: Theme.of(context).colorScheme.onSurface, height: 1.5),
-                              strong: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 80),
-            ],
+      backgroundColor: isDark ? theme.scaffoldBackgroundColor : const Color(0xFFFAFBFA),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: Text(
+          'MammaAI Vitals',
+          style: GoogleFonts.dmSerifDisplay(
+            fontSize: 22,
+            color: isDark ? Colors.white : ink,
           ),
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : ink, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Stack(
+        children: [
+          // Background Gradient
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark 
+                    ? [const Color(0xFF0F0F1A), const Color(0xFF1A1A2E)]
+                    : [const Color(0xFFFDFCFD), const Color(0xFFFAFBFA)],
+                ),
+              ),
+            ),
+          ),
+
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 120, 20, 100),
+            child: FormBuilder(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── Header: Gestational Section ──────────────────────────────
+                  _buildSectionHeader('Pregnancy Status', Icons.auto_awesome, sky, isDark),
+                  const SizedBox(height: 16),
+                  _buildGlassCard(
+                    isDark: isDark,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInfoBox(
+                          'Gestational age counts from your LMP, not conception. 🌸',
+                          rose,
+                          isDark,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildDatePicker(isDark),
+                        const SizedBox(height: 20),
+                        _buildDynamicMetrics(isDark),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // ── Section: Vitals ──────────────────────────────────────────
+                  _buildSectionHeader('Body & Vitals', Icons.monitor_heart_outlined, rose, isDark),
+                  const SizedBox(height: 16),
+                  _buildGlassCard(
+                    isDark: isDark,
+                    child: Column(
+                      children: [
+                        _buildMetricRow([
+                          _buildTextField('height', 'Height (cm)', Icons.height, isDark, keyboardType: TextInputType.number),
+                          _buildTextField('pre_weight', 'Pre-weight', Icons.fitness_center, isDark, keyboardType: TextInputType.number),
+                        ]),
+                        const SizedBox(height: 16),
+                        _buildTextField('current_weight', 'Current Weight (kg)', Icons.scale, isDark, keyboardType: TextInputType.number),
+                        const SizedBox(height: 24),
+                        const Divider(height: 1),
+                        const SizedBox(height: 24),
+                        _buildMetricRow([
+                          _buildTextField('bp_systolic', 'Systolic BP', Icons.favorite_outline, isDark, keyboardType: TextInputType.number),
+                          _buildTextField('bp_diastolic', 'Diastolic BP', Icons.favorite_outline, isDark, keyboardType: TextInputType.number),
+                        ]),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // ── Section: Clinical ─────────────────────────────────────────
+                  _buildSectionHeader('Clinical Readings', Icons.biotech_outlined, sage, isDark),
+                  const SizedBox(height: 16),
+                  _buildGlassCard(
+                    isDark: isDark,
+                    child: Column(
+                      children: [
+                        _buildMetricRow([
+                          _buildTextField('hemoglobin', 'Hb (g/dL)', Icons.bloodtype_outlined, isDark, keyboardType: TextInputType.number),
+                          _buildTextField('fundal_height', 'Fundal (cm)', Icons.straighten_outlined, isDark, keyboardType: TextInputType.number),
+                        ]),
+                        const SizedBox(height: 16),
+                        _buildTextField('fhr', 'Fetal Heart Rate (bpm)', Icons.favorite_rounded, isDark, keyboardType: TextInputType.number),
+                        const SizedBox(height: 24),
+                        _buildSwitchTile('urine_protein', 'Protein in Urine', 'Preeclampsia risk marker', isDark),
+                        _buildSwitchTile('urine_sugar', 'Sugar in Urine', 'Gestational diabetes marker', isDark),
+                        _buildSwitchTile('urine_bacteria', 'Infection Check', 'UTI/Bacteria marker', isDark),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // ── Section: Symptoms ────────────────────────────────────────
+                  _buildSectionHeader('Daily Symptoms', Icons.psychology_outlined, Colors.amber, isDark),
+                  const SizedBox(height: 16),
+                  _buildGlassCard(
+                    isDark: isDark,
+                    padding: EdgeInsets.zero,
+                    child: FormBuilderTextField(
+                      name: 'symptoms',
+                      maxLines: 4,
+                      style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white : ink, fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: 'Any cramping, headaches, or spotting? Describe feelings here...',
+                        hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white38 : Colors.grey, fontSize: 13),
+                        contentPadding: const EdgeInsets.all(16),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  // ── Submit & Analyze Button ──────────────────────────────────
+                  _buildAnalyzeButton(tracker, user, isDark),
+                  
+                  // ── AI Response Section ─────────────────────────────────────
+                  if (tracker.lastAiResponse != null)
+                    _buildAIAnalysisResult(tracker.lastAiResponse!, isDark),
+
+                  const SizedBox(height: 120),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon, Color color, bool isDark) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : const Color(0xFF1A1A3E),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGlassCard({required Widget child, required bool isDark, EdgeInsets? padding}) {
+    return Container(
+      padding: padding ?? const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.04) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.03)),
+        boxShadow: isDark ? [] : [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10)),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildInfoBox(String text, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.lightbulb_outline, color: color, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: color, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePicker(bool isDark) {
+    return FormBuilderDateTimePicker(
+      name: 'lmp_date',
+      inputType: InputType.date,
+      decoration: InputDecoration(
+        labelText: 'Last Menstrual Period Date',
+        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey),
+        prefixIcon: Icon(Icons.calendar_month, color: isDark ? Colors.white60 : const Color(0xFF6B4B9A)),
+        filled: true,
+        fillColor: isDark ? Colors.black26 : const Color(0xFFF8F7FF),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      ),
+      style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white : Colors.black, fontSize: 14),
+      onChanged: (val) => setState(() {}),
+    );
+  }
+
+  Widget _buildDynamicMetrics(bool isDark) {
+    final val = _formKey.currentState?.fields['lmp_date']?.value as DateTime?;
+    if (val == null) return const SizedBox.shrink();
+
+    int weeks = _calculateGestationalWeeks(val);
+    DateTime due = val.add(const Duration(days: 280));
+
+    return Row(
+      children: [
+        Expanded(
+          child: _buildCompactIndicator('Status', 'Week $weeks', const Color(0xFF6B4B9A), isDark),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildCompactIndicator('Due Date', DateFormat('MMM dd, yyyy').format(due), const Color(0xFF2E8B72), isDark),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactIndicator(String label, String value, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: color, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricRow(List<Widget> children) {
+    return Row(
+      children: children.expand((w) => [Expanded(child: w), const SizedBox(width: 16)]).toList()..removeLast(),
+    );
+  }
+
+  Widget _buildTextField(String name, String label, IconData icon, bool isDark, {TextInputType? keyboardType}) {
+    return FormBuilderTextField(
+      name: name,
+      keyboardType: keyboardType,
+      style: GoogleFonts.plusJakartaSans(fontSize: 14, color: isDark ? Colors.white : Colors.black),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? Colors.white38 : Colors.grey),
+        prefixIcon: Icon(icon, size: 18, color: isDark ? Colors.white38 : Colors.grey),
+        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.black12)),
+        focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFE8748A))),
+      ),
+    );
+  }
+
+  Widget _buildSwitchTile(String name, String title, String subtitle, bool isDark) {
+    return FormBuilderSwitch(
+      name: name,
+      title: Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF1A1A3E))),
+      subtitle: Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? Colors.white38 : Colors.grey)),
+      activeColor: const Color(0xFFE8748A),
+      decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.zero),
+    );
+  }
+
+  Widget _buildAnalyzeButton(TrackerProvider tracker, UserModel? user, bool isDark) {
+    final isPremium = user?.isPremium ?? false;
+
+    return ElevatedButton.icon(
+      onPressed: tracker.isAnalyzing ? null : () {
+        if (!isPremium) {
+          context.push('/paywall');
+          return;
+        }
+        _submitData();
+      },
+      icon: tracker.isAnalyzing
+          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+          : Icon(isPremium ? Icons.auto_awesome_rounded : Icons.lock_outline, size: 20),
+      label: Text(
+        isPremium ? 'Analyze with MammaAI ✨' : 'Unlock AI Health Analysis',
+        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 16),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF6B4B9A),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.all(20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 4,
+        shadowColor: const Color(0xFF6B4B9A).withOpacity(0.4),
+      ),
+    );
+  }
+
+  Widget _buildAIAnalysisResult(String result, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.check_circle, color: Color(0xFF2E8B72), size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'MammaAI Insights',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: const Color(0xFF2E8B72), fontSize: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildGlassCard(
+            isDark: isDark,
+            child: MarkdownBody(
+              data: result,
+              styleSheet: MarkdownStyleSheet(
+                p: GoogleFonts.plusJakartaSans(fontSize: 14, color: isDark ? Colors.white : const Color(0xFF1A1A3E), height: 1.6),
+                strong: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: const Color(0xFFE8748A)),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

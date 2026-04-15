@@ -340,64 +340,90 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
+          // Background Blobs for brand consistency
+          Positioned(
+            top: -100,
+            right: -50,
+            child: _buildBgBlob(const Color(0xFFE8748A).withOpacity(isDark ? 0.08 : 0.05)),
+          ),
+          Positioned(
+            bottom: 100,
+            left: -50,
+            child: _buildBgBlob(const Color(0xFF2E8B72).withOpacity(isDark ? 0.08 : 0.05)),
+          ),
+
           SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 140),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // ── Greeting Header ───────────────────────────────────────
-                _buildHeader(currentUser, week, daysTracked, isDark),
-                const SizedBox(height: 16),
+                _buildHeader(currentUser, week, daysTracked, isDark)
+                    .animate().fadeIn(duration: 400.ms).slideX(begin: -0.05),
+                const SizedBox(height: 24),
 
                 // ── Week Block ───────────────────────────────────────────
-                _buildWeekBlock(week, milestone, isDark),
+                _buildWeekBlock(week, milestone, isDark)
+                    .animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),
                 const SizedBox(height: 16),
 
                 // ── Daily Check-in Nudge ──────────────────────────────────────────
-                if (_shouldShowCheckIn(displayUser)) _buildCheckInNudge(displayUser),
+                if (_shouldShowCheckIn(displayUser)) 
+                  _buildCheckInNudge(displayUser)
+                      .animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.9, 0.9)),
                 const SizedBox(height: 16),
 
                 // ── AI Insights Card ─────────────────────────────────────
-                _buildAIInsightsCard(displayUser, isDark),
+                _buildAIInsightsCard(displayUser, isDark)
+                    .animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
                 const SizedBox(height: 16),
 
                 // ── Personalized Tips Section ────────────────────────────
-                _buildPersonalizedTipsSection(displayUser, isDark),
-                const SizedBox(height: 16),
+                _buildPersonalizedTipsSection(displayUser, isDark)
+                    .animate().fadeIn(delay: 400.ms),
+                const SizedBox(height: 24),
 
                 // ── Nutrition Section ────────────────────────────────────
-                _buildNutritionSection(displayUser, isDark),
+                _buildNutritionSection(displayUser, isDark)
+                    .animate().fadeIn(delay: 500.ms),
                 const SizedBox(height: 16),
 
                 // ── Quick Meal Log Button (Only for Mother) ───────────────────────────────
                 if (currentUser.isPartnerAccount != true) ...[
-                  _buildQuickMealLogButton(),
+                  _buildQuickMealLogButton()
+                      .animate().fadeIn(delay: 550.ms),
                   const SizedBox(height: 16),
                 ],
 
                 // ── Wellness Grid ────────────────────────────────────────
-                _buildWellnessGrid(isDark),
+                _buildWellnessGrid(isDark)
+                    .animate().fadeIn(delay: 600.ms),
                 const SizedBox(height: 16),
 
                 // ── Mood Analyzer ─────────────────────────────────────────
-                _buildMoodAnalyzer(displayUser, isDark),
+                _buildMoodAnalyzer(displayUser, isDark)
+                    .animate().fadeIn(delay: 650.ms),
                 const SizedBox(height: 16),
 
                 // ── Weekly Progress ──────────────────────────────────────
-                _buildWeeklyProgress(displayUser),
+                _buildWeeklyProgress(displayUser)
+                    .animate().fadeIn(delay: 700.ms),
                 const SizedBox(height: 16),
 
                 // ── Partner Widget ────────────────────────────────────────
-                _buildPartnerWidget(currentUser, isDark),
+                _buildPartnerWidget(currentUser, isDark)
+                    .animate().fadeIn(delay: 750.ms),
                 const SizedBox(height: 16),
 
-                // ── Doctor Reports (View Only for Partner?) ───────────────────────
-                _buildDoctorReportsButton(isDark),
+                // ── Doctor Reports ───────────────────────────────────────
+                _buildDoctorReportsButton(isDark)
+                    .animate().fadeIn(delay: 800.ms),
                 const SizedBox(height: 16),
 
                 // ── Symptom Checker (Only for Mother) ──────────────────────────────
                 if (currentUser.isPartnerAccount != true)
-                  _buildSymptomChecker(isDark),
+                  _buildSymptomChecker(isDark)
+                      .animate().fadeIn(delay: 850.ms),
               ],
             ),
           ),
@@ -408,6 +434,19 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  Widget _buildBgBlob(Color color) {
+    return Container(
+      width: 300,
+      height: 300,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+     .moveY(begin: -20, end: 20, duration: 4.seconds, curve: Curves.easeInOut)
+     .moveX(begin: -10, end: 10, duration: 3.seconds, curve: Curves.easeInOut);
   }
 
   Widget _buildHeader(UserModel user, int week, int daysTracked, bool isDark) {

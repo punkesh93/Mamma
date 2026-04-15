@@ -155,245 +155,87 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFBFA),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Wellness & Calm 🧘',
-              style: GoogleFonts.dmSerifDisplay(fontSize: 28, color: _ink),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Nurturing your mind and body',
-              style: GoogleFonts.plusJakartaSans(fontSize: 14, fontStyle: FontStyle.italic, color: const Color(0xFF5C5470)),
-            ),
-            const SizedBox(height: 24),
-
-            // Daily Affirmation (Ho'oponopono)
-            _buildAffirmationCard(),
-            const SizedBox(height: 24),
-
-            // A Moment of Calm - Spotify Playlist
-            _buildSpotifyCard(),
-            const SizedBox(height: 24),
-
-            // Breathing Exercise
-            _buildBreathingCard(),
-            const SizedBox(height: 24),
-
-            // Activity Categories
-            Text(
-              'Guided Activities',
-              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: _ink),
-            ),
-            const SizedBox(height: 12),
-            _buildActivityGrid(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAffirmationCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [_lavender.withOpacity(0.1), _rose.withOpacity(0.05)]),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _lavender.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: isDark ? const Color(0xFF0F0F1A) : const Color(0xFFFAFBFA),
+      extendBodyBehindAppBar: true,
+      body: Stack(
         children: [
-          Row(
-            children: [
-              Icon(CupertinoIcons.sparkles, color: _lavender, size: 20),
-              const SizedBox(width: 8),
-              Text('Daily Affirmation', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: _lavender)),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          // Background soft glow
+          if (!isDark)
+            Positioned(
+              top: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
                 decoration: BoxDecoration(
-                  color: _lavender.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  shape: BoxShape.circle,
+                  color: _rose.withOpacity(0.05),
                 ),
-                child: Text('Ho\'oponopono', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: _lavender)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (_isLoadingTip)
-            const Center(child: CupertinoActivityIndicator())
-          else
-            Text(
-              _wellnessTip ?? _getHooponoponoAffirmation(),
-              style: GoogleFonts.plusJakartaSans(fontSize: 15, height: 1.5, fontStyle: FontStyle.italic, color: _ink),
-            ).animate().fadeIn(),
-        ],
-      ),
-    );
-  }
+              ).animate().fadeIn(duration: 2.seconds).scale(begin: const Offset(0.5, 0.5)),
+            ),
 
-  Widget _buildSpotifyCard() {
-    return GestureDetector(
-      onTap: _openSpotifyPlaylist,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [const Color(0xFF1DB954).withOpacity(0.1), _sky.withOpacity(0.1)]),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF1DB954).withOpacity(0.3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 80, 20, 120),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1DB954),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('A Moment of Calm', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16, color: _ink)),
-                      Text('Tap to open calm playlist on Spotify', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey)),
-                    ],
-                  ),
-                ),
-                Icon(CupertinoIcons.chevron_right, color: Colors.grey, size: 20),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.music_note, color: Color(0xFF1DB954), size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Pregnancy Calm & Relaxation',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: _ink),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBreathingCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [_sky.withOpacity(0.1), _sage.withOpacity(0.1)]),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _sky.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Icon(CupertinoIcons.wind, color: _sky, size: 20),
-              const SizedBox(width: 8),
-              Text('Start Breathing', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: _sky)),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Breathing animation circle
-          AnimatedBuilder(
-            animation: _breathingAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _breathingAnimation.value,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [
-                        _sky.withOpacity(0.6),
-                        _sky.withOpacity(0.2),
-                        _sky.withOpacity(0.0),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: _sky.withOpacity(0.3),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          _isBreathing ? 'Breathe' : 'Start',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontSize: 12,
+                // ── Header ───────────────────────────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Wellness Sanctuary',
+                          style: GoogleFonts.dmSerifDisplay(
+                            fontSize: 32,
+                            color: isDark ? Colors.white : _ink,
                           ),
                         ),
-                      ),
+                        Text(
+                          'Find your inner peace today',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            color: isDark ? Colors.white38 : const Color(0xFF5C5470),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    _buildZenIcon(isDark),
+                  ],
                 ),
-              );
-            },
-          ),
+                const SizedBox(height: 32),
 
-          const SizedBox(height: 16),
+                // ── Section: Daily Ritual ────────────────────────────────────
+                _buildSectionHeader('Your Daily Ritual', CupertinoIcons.sparkles, _lavender, isDark),
+                const SizedBox(height: 16),
+                _buildAffirmationCard(isDark),
+                const SizedBox(height: 32),
 
-          // Timer display
-          if (_isBreathing) ...[
-            Text(
-              _formatTime(_breathingSeconds),
-              style: GoogleFonts.dmSerifDisplay(fontSize: 32, color: _sky),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Inhale... Exhale...',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey),
-            ),
-          ],
+                // ── Section: A Moment of Calm ────────────────────────────────
+                _buildSectionHeader('Sonic Peace', CupertinoIcons.music_note_2, const Color(0xFF1DB954), isDark),
+                const SizedBox(height: 16),
+                _buildSpotifyCard(isDark),
+                const SizedBox(height: 32),
 
-          const SizedBox(height: 16),
+                // ── Section: Breathwork ──────────────────────────────────────
+                _buildSectionHeader('Mindful Breath', CupertinoIcons.wind, _sky, isDark),
+                const SizedBox(height: 16),
+                _buildBreathingCard(isDark),
+                const SizedBox(height: 32),
 
-          // Start/Stop button
-          ElevatedButton(
-            onPressed: _toggleBreathing,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _sky,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 0,
-            ),
-            child: Text(
-              _isBreathing ? 'Stop' : 'Start 1-Minute Session',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                // ── Section: Explore ─────────────────────────────────────────
+                _buildSectionHeader('Guided Studio', CupertinoIcons.rectangle_grid_2x2, _sage, isDark),
+                const SizedBox(height: 16),
+                _buildActivityList(isDark),
+
+                const SizedBox(height: 40),
+              ],
             ),
           ),
         ],
@@ -401,52 +243,280 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
     );
   }
 
-  String _formatTime(int seconds) {
-    final mins = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+  Widget _buildZenIcon(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _rose.withOpacity(0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(Icons.self_improvement, color: _rose, size: 28),
+    );
   }
 
-  Widget _buildActivityGrid() {
-    return Column(
+  Widget _buildSectionHeader(String title, IconData icon, Color color, bool isDark) {
+    return Row(
       children: [
-        _buildActivityItem('Prenatal Yoga', '15 min • Gentle Stretch', '🧘', _sage, 'Relieve back pain and improve flexibility for birth.'),
-        const SizedBox(height: 12),
-        _buildActivityItem('Mindful Meditation', '10 min • Calm Mind', '🧠', _sky, 'Sync your heartbeat with your baby\'s and reduce cortisol.'),
-        const SizedBox(height: 12),
-        _buildActivityItem('Gratitude Journaling', '5 min • Positive Vibes', '📝', _rose, 'Focus on the joy of your journey and bond with baby.'),
+        Icon(icon, color: color, size: 18),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.5,
+            color: isDark ? Colors.white70 : _ink.withOpacity(0.6),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildActivityItem(String title, String subtitle, String icon, Color color, String description) {
+  Widget _buildAffirmationCard(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
+        color: isDark ? Colors.white.withOpacity(0.04) : Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: _lavender.withOpacity(0.2)),
+        boxShadow: isDark ? [] : [
+          BoxShadow(color: _lavender.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10)),
+        ],
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-            child: Center(child: Text(icon, style: const TextStyle(fontSize: 24))),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _lavender.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('DAILY HIGHLIGHT', style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.w900, color: _lavender)),
+              ),
+              const Spacer(),
+              if (_isLoadingTip)
+                const CupertinoActivityIndicator(radius: 8)
+              else
+                IconButton(
+                  onPressed: _loadDailyTip,
+                  icon: Icon(Icons.refresh, size: 16, color: _lavender.withOpacity(0.5)),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+            ],
           ),
-          const SizedBox(width: 12),
+          const SizedBox(height: 16),
+          Text(
+            _wellnessTip ?? _getHooponoponoAffirmation(),
+            style: GoogleFonts.dmSerifDisplay(
+              fontSize: 20,
+              height: 1.4,
+              color: isDark ? Colors.white : _ink,
+            ),
+          ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpotifyCard(bool isDark) {
+    return GestureDetector(
+      onTap: _openSpotifyPlaylist,
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          image: const DecorationImage(
+            image: NetworkImage('https://images.unsplash.com/photo-1518005020251-58296d8ae178?auto=format&fit=crop&q=80&w=800'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(color: Color(0xFF1DB954), shape: BoxShape.circle),
+                child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 30),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Pregnancy Calm', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white)),
+                  Text('Curated by MammaBuddy', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white70)),
+                ],
+              ),
+              const Spacer(),
+              const Icon(CupertinoIcons.spotify, color: Colors.white, size: 24),
+            ],
+          ),
+        ),
+      ),
+    ).animate().fadeIn(delay: 200.ms);
+  }
+
+  Widget _buildBreathingCard(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.04) : Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: _sky.withOpacity(0.1)),
+        boxShadow: isDark ? [] : [
+          BoxShadow(color: _sky.withOpacity(0.03), blurRadius: 30, offset: const Offset(0, 15)),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildBreathingCircle(isDark),
+          const SizedBox(height: 24),
+          if (_isBreathing) ...[
+            Text(
+              _formatTime(_breathingSeconds),
+              style: GoogleFonts.dmSerifDisplay(fontSize: 36, color: _sky),
+            ).animate().fadeIn(),
+            const SizedBox(height: 4),
+            Text(
+              'Synchronize your breath',
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? Colors.white38 : Colors.grey),
+            ),
+          ],
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () {
+              _toggleBreathing();
+              // Haptic feedback
+              import 'package:flutter/services.dart';
+              HapticFeedback.mediumImpact();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _sky,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 4,
+              shadowColor: _sky.withOpacity(0.4),
+            ),
+            child: Text(
+              _isBreathing ? 'Stop Session' : 'Start 1m Breathing',
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBreathingCircle(bool isDark) {
+    return AnimatedBuilder(
+      animation: _breathingAnimation,
+      builder: (context, child) {
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            // Outer glow
+            Container(
+              width: 140 * _breathingAnimation.value,
+              height: 140 * _breathingAnimation.value,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    _sky.withOpacity(0.3 * _breathingAnimation.value),
+                    _sky.withOpacity(0.0),
+                  ],
+                ),
+              ),
+            ),
+            // Inner circle
+            Container(
+              width: 90 * _breathingAnimation.value,
+              height: 90 * _breathingAnimation.value,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _sky.withOpacity(0.4),
+                border: Border.all(color: Colors.white.withOpacity(0.2), width: 2),
+              ),
+              child: Center(
+                child: Text(
+                  _breathingAnimation.value > 1.1 ? 'EXHALE' : 'INHALE',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildActivityList(bool isDark) {
+    return Column(
+      children: [
+        _buildImprovedActivityCard(
+          'Prenatal Yoga', 
+          '15 MIN • RELAXATION', 
+          'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=800', 
+          _sage,
+          isDark,
+        ),
+        const SizedBox(height: 16),
+        _buildImprovedActivityCard(
+          'Bonding Meditation', 
+          '10 MIN • CONNECTION', 
+          'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=800', 
+          _sky,
+          isDark,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImprovedActivityCard(String title, String meta, String imageUrl, Color accent, bool isDark) {
+    return Container(
+      height: 120,
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.04) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.03)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 120,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
+              image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover),
+            ),
+          ),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 14, color: _ink)),
-                const SizedBox(height: 2),
-                Text(subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: color)),
-                const SizedBox(height: 6),
-                Text(description, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey, height: 1.3)),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(meta, style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.w900, color: accent)),
+                  const SizedBox(height: 4),
+                  Text(title, style: GoogleFonts.dmSerifDisplay(fontSize: 18, color: isDark ? Colors.white : _ink)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text('START SESSION', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: isDark ? Colors.white38 : Colors.grey)),
+                      const SizedBox(width: 4),
+                      Icon(Icons.arrow_forward, size: 10, color: isDark ? Colors.white38 : Colors.grey),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],

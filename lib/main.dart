@@ -191,11 +191,16 @@ class MammaBuddyApp extends StatelessWidget {
   }
 }
 
-class AppLayoutWrapper extends StatelessWidget {
+class AppLayoutWrapper extends StatefulWidget {
   final Widget child;
 
   const AppLayoutWrapper({super.key, required this.child});
 
+  @override
+  State<AppLayoutWrapper> createState() => _AppLayoutWrapperState();
+}
+
+class _AppLayoutWrapperState extends State<AppLayoutWrapper> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -203,7 +208,7 @@ class AppLayoutWrapper extends StatelessWidget {
     final location = GoRouterState.of(context).matchedLocation;
 
     return Scaffold(
-      extendBody: false,
+      extendBody: true, // Allow body to flow under the bottom nav
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -230,6 +235,8 @@ class AppLayoutWrapper extends StatelessWidget {
             ),
           ],
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
             icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
@@ -241,22 +248,30 @@ class AppLayoutWrapper extends StatelessWidget {
       ),
       body: Stack(
         children: [
+          // ── Animated Background Blobs ──
           Positioned(
-            top: -50,
-            left: -50,
-            child: _buildBlob(const Color(0xFF2E8B72).withOpacity(isDark ? 0.2 : 0.4)),
+            top: -100,
+            left: -100,
+            child: _buildBlob(const Color(0xFF2E8B72).withOpacity(isDark ? 0.1 : 0.2))
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .move(begin: const Offset(-20, -20), end: const Offset(40, 40), duration: 10.seconds, curve: Curves.easeInOut),
           ),
           Positioned(
-            top: -50,
-            right: -50,
-            child: _buildBlob(const Color(0xFF2A7A90).withOpacity(isDark ? 0.2 : 0.4)),
+            top: 200,
+            right: -150,
+            child: _buildBlob(const Color(0xFF2A7A90).withOpacity(isDark ? 0.1 : 0.2))
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .move(begin: const Offset(30, 0), end: const Offset(-30, 50), duration: 15.seconds, curve: Curves.easeInOut),
           ),
           Positioned(
-            bottom: 0,
+            bottom: -100,
             left: 50,
-            child: _buildBlob(const Color(0xFF6B4B9A).withOpacity(isDark ? 0.2 : 0.4)),
+            child: _buildBlob(const Color(0xFF6B4B9A).withOpacity(isDark ? 0.1 : 0.2))
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .move(begin: const Offset(0, 30), end: const Offset(0, -30), duration: 12.seconds, curve: Curves.easeInOut),
           ),
-          SafeArea(child: child),
+          
+          SafeArea(child: widget.child),
         ],
       ),
       floatingActionButton: location == '/chat'
@@ -269,14 +284,14 @@ class AppLayoutWrapper extends StatelessWidget {
               child: const Icon(CupertinoIcons.chat_bubble_2_fill, color: Colors.white, size: 20),
             ).animate().scale(delay: 500.ms, duration: 400.ms, curve: Curves.elasticOut),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: location == '/chat' ? null : _buildBottomNav(context, location),
+      bottomNavigationBar: (location == '/chat' || location == '/setup') ? null : _buildBottomNav(context, location),
     );
   }
 
   Widget _buildBlob(Color color) {
     return Container(
-      width: 250,
-      height: 250,
+      width: 350,
+      height: 350,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
@@ -285,54 +300,73 @@ class AppLayoutWrapper extends StatelessWidget {
   }
 
   Widget _buildBottomNav(BuildContext context, String location) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     int getIndex(String loc) {
       if (loc == '/') return 0;
       if (loc == '/journey') return 1;
-      if (loc == '/tracker') return 2;
+      if (loc == '/tracker' || loc == '/history') return 2;
       if (loc == '/wellness') return 3;
-      if (loc == '/profile') return 4;
+      if (loc == '/profile' || loc == '/partner') return 4;
       return 0;
     }
 
-    void onItemTapped(int index) {
-      switch (index) {
-        case 0:
-          context.go('/');
-          break;
-        case 1:
-          context.go('/journey');
-          break;
-        case 2:
-          context.go('/tracker');
-          break;
-        case 3:
-          context.go('/wellness');
-          break;
-        case 4:
-          context.go('/profile');
-          break;
-      }
-    }
-
     return Container(
+      margin: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+      height: 70,
       decoration: BoxDecoration(
-        color: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withOpacity(0.3),
-            width: 1,
+        color: isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
-        ),
+        ],
       ),
-      child: BottomNavigationBar(
-        currentIndex: getIndex(location),
-        onTap: onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.heart_fill), label: 'HOME'),
-          BottomNavigationBarItem(icon: Icon(Icons.child_care), label: 'JOURNEY'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.graph_square_fill), label: 'TRACKER'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.sparkles), label: 'WELLNESS'),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.person_fill), label: 'PROFILE'),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(0, CupertinoIcons.heart_fill, 'Home', getIndex(location) == 0, context),
+          _buildNavItem(1, Icons.child_care_rounded, 'Baby', getIndex(location) == 1, context),
+          _buildNavItem(2, CupertinoIcons.graph_square_fill, 'Vitals', getIndex(location) == 2, context),
+          _buildNavItem(3, CupertinoIcons.sparkles, 'Wellness', getIndex(location) == 3, context),
+          _buildNavItem(4, CupertinoIcons.person_fill, 'Profile', getIndex(location) == 4, context),
+        ],
+      ),
+    ).animate().slideY(begin: 1.0, duration: 500.ms, curve: Curves.easeOutCubic);
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label, bool isActive, BuildContext context) {
+    final color = isActive ? const Color(0xFF6B4B9A) : Colors.grey.withOpacity(0.5);
+    
+    return GestureDetector(
+      onTap: () {
+        switch (index) {
+          case 0: context.go('/'); break;
+          case 1: context.go('/journey'); break;
+          case 2: context.go('/tracker'); break;
+          case 3: context.go('/wellness'); break;
+          case 4: context.go('/profile'); break;
+        }
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: isActive ? color.withOpacity(0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(icon, color: color, size: isActive ? 24 : 20),
+          ),
+          if (isActive)
+            Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: color))
+              .animate().fadeIn().scale(begin: const Offset(0.8, 0.8)),
         ],
       ),
     );

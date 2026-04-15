@@ -54,11 +54,25 @@ class TrackerHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
     final tracker = Provider.of<TrackerProvider>(context, listen: false);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (auth.userData == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tracker History')),
+      backgroundColor: isDark ? const Color(0xFF0F0F1A) : const Color(0xFFFAFBFA),
+      appBar: AppBar(
+        title: Text(
+          'Journey Logs',
+          style: GoogleFonts.dmSerifDisplay(fontSize: 22, color: isDark ? Colors.white : const Color(0xFF1A1A3E)),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : const Color(0xFF1A1A3E), size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: StreamBuilder<List<HealthRecord>>(
         stream: tracker.getHealthRecords(auth.userData!.uid),
         builder: (context, snapshot) {
@@ -71,31 +85,150 @@ class TrackerHistoryScreen extends StatelessWidget {
 
           final records = snapshot.data ?? [];
           if (records.isEmpty) {
-            return const Center(child: Text('No records found. Start tracking!'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                   Icon(Icons.history_edu, size: 64, color: isDark ? Colors.white24 : Colors.grey.withOpacity(0.3)),
+                   const SizedBox(height: 16),
+                   Text('No logs yet', style: GoogleFonts.dmSerifDisplay(fontSize: 20, color: isDark ? Colors.white38 : Colors.grey)),
+                   const SizedBox(height: 8),
+                   Text('Start tracking your vitals to see them here.', style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white38 : Colors.grey)),
+                ],
+              ),
+            );
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             itemCount: records.length,
             itemBuilder: (context, index) {
               final record = records[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: const Color(0xFF2E8B72),
-                    child: Text('W${record.gestationalWeeks}', style: const TextStyle(color: Colors.white)),
-                  ),
-                  title: Text(DateFormat.yMMMd().format(DateTime.parse(record.timestamp))),
-                  subtitle: Text("BP: ${record.bloodPressureSystolic ?? '--'}/${record.bloodPressureDiastolic ?? '--'} • Wt: ${record.currentWeightKg}kg"),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showDetails(context, record),
+              final date = DateTime.parse(record.timestamp);
+              
+              return IntrinsicHeight(
+                child: Row(
+                  children: [
+                    // Timeline indicator
+                    Column(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFFE8748A),
+                            boxShadow: [BoxShadow(color: const Color(0xFFE8748A).withOpacity(0.4), blurRadius: 8)],
+                          ),
+                        ),
+                        if (index != records.length - 1)
+                          Expanded(
+                            child: Container(
+                              width: 2,
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              color: const Color(0xFFE8748A).withOpacity(0.15),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
+                    // Card
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: GestureDetector(
+                          onTap: () => _showDetails(context, record),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white.withOpacity(0.04) : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.03)),
+                              boxShadow: isDark ? [] : [
+                                BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Week ${record.gestationalWeeks}',
+                                      style: GoogleFonts.dmSerifDisplay(
+                                        fontSize: 18,
+                                        color: const Color(0xFFE8748A),
+                                      ),
+                                    ),
+                                    Text(
+                                      DateFormat('MMM dd').format(date),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        color: isDark ? Colors.white38 : Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    _buildSmallMetric(Icons.favorite_outline, '${record.bloodPressureSystolic}/${record.bloodPressureDiastolic}', isDark),
+                                    const SizedBox(width: 16),
+                                    _buildSmallMetric(Icons.scale_outlined, '${record.currentWeightKg}kg', isDark),
+                                  ],
+                                ),
+                                if (record.aiAnalysis.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2E8B72).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.auto_awesome, size: 12, color: Color(0xFF2E8B72)),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Analysis Ready',
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF2E8B72)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
           );
         },
       ),
+    );
+  }
+
+  Widget _buildSmallMetric(IconData icon, String value, bool isDark) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: isDark ? Colors.white38 : Colors.grey),
+        const SizedBox(width: 4),
+        Text(
+          value,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white70 : const Color(0xFF1A1A3E),
+          ),
+        ),
+      ],
     );
   }
 }
