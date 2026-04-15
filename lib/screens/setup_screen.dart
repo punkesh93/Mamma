@@ -85,57 +85,58 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Future<void> _handleComplete() async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final firebaseUser = auth.firebaseUser;
-
-    if (firebaseUser == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please sign in first')),
-        );
-      }
-      return;
-    }
-
-    // Calculate week and due date
-    final currentWeek = _calcCurrentWeek(
-      _formData['lastPeriodDate'] as String?,
-      _formData['testDate'] as String?,
-    );
-    final dueDate = _calcDueDate(
-      _formData['lastPeriodDate'] as String?,
-      _formData['testDate'] as String?,
-    );
-
-    // Create user model
-    final userModel = UserModel(
-      uid: firebaseUser.uid,
-      name: _formData['name'] as String? ?? 'Mama',
-      email: firebaseUser.email ?? '',
-      photoUrl: firebaseUser.photoURL ?? '',
-      lastPeriodDate: _formData['lastPeriodDate'] as String?,
-      testDate: _formData['testDate'] as String?,
-      dueDate: dueDate,
-      currentWeek: currentWeek,
-      country: _formData['country'] as String? ?? 'US',
-      language: 'en',
-      streakDays: 0,
-      totalPoints: 0,
-      plan: 'trial',
-      trialStartDate: DateTime.now().toIso8601String(),
-      quietMode: _formData['quietMode'] as bool? ?? false,
-      units: _formData['units'] as String? ?? 'imperial',
-      createdAt: DateTime.now().toIso8601String(),
-      region: _formData['region'] as String? ?? 'US',
-      isPartnerAccount: _formData['isPartnerAccount'] as bool? ?? false,
-      partnerEmail: _formData['partnerEmail'] as String?,
-      dailyGoals: DailyGoals.fromJson(_dailyGoals),
-      achievedToday: DailyGoals.fromJson(_achievedToday),
-    );
-
-    // Save to Firestore via auth provider
     try {
-      await auth.saveUserData(userModel);
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final firebaseUser = auth.firebaseUser;
+
+      if (firebaseUser == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please sign in first')),
+          );
+        }
+        return;
+      }
+
+      // Calculate week and due date
+      final currentWeek = _calcCurrentWeek(
+        _formData['lastPeriodDate'] as String?,
+        _formData['testDate'] as String?,
+      );
+      final dueDate = _calcDueDate(
+        _formData['lastPeriodDate'] as String?,
+        _formData['testDate'] as String?,
+      );
+
+      // Create user model
+      final userModel = UserModel(
+        uid: firebaseUser.uid,
+        name: _formData['name'] as String? ?? 'Mama',
+        email: firebaseUser.email ?? '',
+        photoUrl: firebaseUser.photoURL ?? '',
+        lastPeriodDate: _formData['lastPeriodDate'] as String?,
+        testDate: _formData['testDate'] as String?,
+        dueDate: dueDate,
+        currentWeek: currentWeek,
+        country: _formData['country'] as String? ?? 'US',
+        language: 'en',
+        streakDays: 0,
+        totalPoints: 0,
+        plan: 'trial',
+        trialStartDate: DateTime.now().toIso8601String(),
+        quietMode: _formData['quietMode'] as bool? ?? false,
+        units: _formData['units'] as String? ?? 'imperial',
+        createdAt: DateTime.now().toIso8601String(),
+        region: _formData['region'] as String? ?? 'US',
+        isPartnerAccount: _formData['isPartnerAccount'] as bool? ?? false,
+        partnerEmail: _formData['partnerEmail'] as String?,
+        dailyGoals: DailyGoals.fromJson(_dailyGoals),
+        achievedToday: DailyGoals.fromJson(_achievedToday),
+      );
+
+      // Save to Firestore via auth provider
+      await auth.saveUserData(userModel).timeout(const Duration(seconds: 15));
+      
       if (mounted) {
         context.go('/');
       }
@@ -143,8 +144,9 @@ class _SetupScreenState extends State<SetupScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save data: ${e.toString()}'),
+            content: Text('Setup Error: $e', style: const TextStyle(color: Colors.white)),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 8),
           ),
         );
       }

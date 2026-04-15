@@ -64,6 +64,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       }
 
       setState(() => _error = errorMsg);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('G-Auth Error: $err', style: const TextStyle(color: Colors.white)),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 8),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
