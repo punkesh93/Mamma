@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class NotificationService {
@@ -10,7 +11,7 @@ class NotificationService {
       sound: true,
     );
     // ignore: avoid_print
-    print('User granted permission: ${settings.authorizationStatus}');
+    debugPrint('User granted permission: ${settings.authorizationStatus}');
   }
 
   Future<String?> getToken() async {
@@ -20,7 +21,7 @@ class NotificationService {
   void setupForegroundListener() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.notification != null) {
-        print('Foreground notification: ${message.notification?.title}');
+        debugPrint('Foreground notification: ${message.notification?.title}');
         // You could show a local notification here
       }
     });
@@ -37,13 +38,13 @@ class NotificationService {
     };
 
     final message = nudges[type] ?? 'Keep up the great work, Mama!';
-    print('Simulated Push Notification [$type]: $message');
+    debugPrint('Simulated Push Notification [$type]: $message');
   }
 
   /// Logic for daily check-in reminders
   Future<void> scheduleDailyCheckIn() async {
     // This would use flutter_local_notifications to schedule a daily alarm.
     // Since we are primarily using FCM, we record the intent.
-    print('Daily check-in reminders scheduled for 9:00 AM');
+    debugPrint('Daily check-in reminders scheduled for 9:00 AM');
   }
 }
