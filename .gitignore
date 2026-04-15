@@ -26,6 +26,7 @@ local.properties
 *.iml
 *.hprof
 .cxx/
+android/key.properties
 *.jks
 *.keystore
 
