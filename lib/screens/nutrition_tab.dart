@@ -7,6 +7,9 @@ import '../providers/auth_provider.dart';
 import '../core/services/openrouter_service.dart';
 import '../models/user_model.dart';
 import '../core/services/firestore_service.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:convert';
 
 class LoggedMeal {
   final String id;
@@ -81,6 +84,7 @@ class _NutritionTabState extends State<NutritionTab> {
   final Color _sky = const Color(0xFF2A7A90);
   final Color _lavender = const Color(0xFF6B4B9A);
   final Color _ink = const Color(0xFF1A1A3E);
+  final Color _rose = const Color(0xFFE8748A);
 
   @override
   void initState() {
@@ -112,7 +116,7 @@ class _NutritionTabState extends State<NutritionTab> {
     try {
       final meals = await _firestoreService.getTodayMeals(user.uid);
       setState(() {
-        _todayMeals = meals;
+        _todayMeals = meals.cast<LoggedMeal>();
       });
     } catch (e) {
       // Handle error silently
@@ -358,6 +362,7 @@ class _NutritionTabState extends State<NutritionTab> {
   }
 
   Widget _buildMealLoggingSection(bool isDark, Color surfaceColor, Color onSurfaceColor, UserModel user) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

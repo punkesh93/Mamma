@@ -25,6 +25,8 @@ import 'screens/doctor_tab.dart';
 import 'screens/tracker/maternal_tracker_screen.dart';
 import 'screens/tracker/tracker_history_screen.dart';
 import 'screens/chat/ai_chat_screen.dart';
+import 'screens/partner_linking_screen.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 void main() async {
   // 1. Start the Flutter engine first

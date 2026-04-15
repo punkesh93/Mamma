@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -355,7 +356,7 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
                 ],
               ),
               const Spacer(),
-              const Icon(CupertinoIcons.spotify, color: Colors.white, size: 24),
+              const Icon(CupertinoIcons.music_note_2, color: Colors.white, size: 24),
             ],
           ),
         ),
@@ -393,8 +394,6 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
           ElevatedButton(
             onPressed: () {
               _toggleBreathing();
-              // Haptic feedback
-              import 'package:flutter/services.dart';
               HapticFeedback.mediumImpact();
             },
             style: ElevatedButton.styleFrom(
@@ -522,5 +521,11 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
         ],
       ),
     );
+  }
+
+  String _formatTime(int seconds) {
+    final mins = (seconds / 60).floor();
+    final secs = seconds % 60;
+    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 }

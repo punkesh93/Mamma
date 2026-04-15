@@ -54,8 +54,11 @@ You're doing amazing work! 💕
   };
 
   String _getFallbackResponse(String type) {
-    final responses = _fallbackResponses[type] ?? _fallbackResponses['wellness']!;
-    return responses[DateTime.now().millisecond % responses.length];
+    final response = _fallbackResponses[type] ?? _fallbackResponses['wellness']!;
+    if (response is List) {
+      return (response as List<String>)[DateTime.now().millisecond % response.length];
+    }
+    return response as String;
   }
 
   // ── For the upgraded Symptom Checker ──────────────────────

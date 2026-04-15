@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../models/user_model.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -627,126 +628,6 @@ class _SetupScreenState extends State<SetupScreen> {
       width: 400,
       height: 400,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
-  }
-}
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    'Back',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white : const Color(0xFF5C5470),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: GestureDetector(
-                onTap: _handleComplete,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFE8748A), Color(0xFFF48FB1)],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFE8748A).withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'Start My Journey',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    ).animate().fadeIn().slideX(begin: 0.1, duration: 300.ms);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [
-                    const Color(0xFF121212),
-                    const Color(0xFF1A1A3E).withOpacity(0.4),
-                    const Color(0xFF2E8B72).withOpacity(0.1),
-                  ]
-                : [
-                    const Color(0xFFFAF5F0),
-                    const Color(0xFFFFE4E6).withOpacity(0.3),
-                    const Color(0xFFE8EAF6).withOpacity(0.3),
-                  ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              children: [
-                // Progress indicator
-                Row(
-                  children: List.generate(3, (i) {
-                    final isActive = i + 1 <= _step;
-                    return Expanded(
-                      child: Container(
-                        height: 4,
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? const Color(0xFFE8748A)
-                              : (isDark
-                                  ? Colors.white.withOpacity(0.1)
-                                  : Colors.grey.withOpacity(0.2)),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 48),
-
-                // Step content
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: _step == 1
-                        ? _buildStep1()
-                        : _step == 2
-                            ? _buildStep2()
-                            : _buildStep3(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
