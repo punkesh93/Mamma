@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/auth_provider.dart';
 import '../models/user_model.dart';
 
@@ -89,13 +90,8 @@ class _SetupScreenState extends State<SetupScreen> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final firebaseUser = auth.firebaseUser;
 
-      if (firebaseUser == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please sign in first')),
-          );
-        }
-        return;
+      if (firebaseUser == null || FirebaseAuth.instance.currentUser == null) {
+        throw Exception('User authentication lost. Please log in again.');
       }
 
       // Calculate week and due date

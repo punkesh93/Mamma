@@ -135,7 +135,7 @@ class AuthProvider extends ChangeNotifier {
       await _firestoreService.createUser(user);
     } catch (e) {
       debugPrint("Error saving user data: $e");
-      // Don't rethrow, let them proceed
+      rethrow;
     }
   }
 

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(serverClientId: '733225462613-4l9qjslf6i2q2us6oj8h7lh7otdnsjj2.apps.googleusercontent.com');
 
   // Stream of auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
