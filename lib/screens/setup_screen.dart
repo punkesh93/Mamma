@@ -134,10 +134,20 @@ class _SetupScreenState extends State<SetupScreen> {
     );
 
     // Save to Firestore via auth provider
-    await auth.saveUserData(userModel);
-
-    if (mounted) {
-      context.go('/home');
+    try {
+      await auth.saveUserData(userModel);
+      if (mounted) {
+        context.go('/');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save data: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

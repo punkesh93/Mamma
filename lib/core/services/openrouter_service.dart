@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
+import 'package:flutter/foundation.dart';
 
 class OpenRouterService {
   String get _apiKey => ApiConstants.openRouterApiKey;
@@ -51,6 +52,7 @@ Continue:
 
 You're doing amazing work! 💕
 """,
+    'meal_nutrition': '{"calories": 0, "protein": 0, "iron": 0, "calcium": 0}',
   };
 
   String _getFallbackResponse(String type) {
@@ -146,7 +148,7 @@ If any value is unknown, use 0. Do not include any text before or after the JSON
     return _callOpenRouter(
       systemPrompt: prompt,
       userMessage: mealDescription,
-      fallbackType: 'meal_plan',
+      fallbackType: 'meal_nutrition',
     );
   }
 
@@ -206,6 +208,9 @@ If any value is unknown, use 0. Do not include any text before or after the JSON
         if (data['choices'] != null && data['choices'].isNotEmpty) {
           return data['choices'][0]['message']['content'] as String;
         }
+      } else if (response.statusCode == 429) {
+        debugPrint("OpenRouter Rate Limit Exceeded (429)");
+        return _getFallbackResponse(fallbackType);
       }
       return _getFallbackResponse(fallbackType);
     } catch (e) {

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 // No firebase options
 import 'providers/auth_provider.dart';
 import 'providers/tracker_provider.dart';
@@ -38,6 +39,17 @@ Future<void> main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
+
+  // Request notification permissions
+  try {
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+  } catch (e) {
+    debugPrint("Error requesting notification permissions: $e");
+  }
 
   runApp(
     MultiProvider(
