@@ -1,84 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
-
-import 'core/constants/app_theme.dart';
+import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
-import 'providers/theme_provider.dart';
 import 'providers/tracker_provider.dart';
-
-import 'screens/splash_screen.dart';
-import 'screens/welcome_screen.dart';
+import 'providers/theme_provider.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/onboarding_screen.dart';
 import 'screens/setup_screen.dart';
-import 'screens/paywall_screen.dart';
 import 'screens/home_tab.dart';
-import 'screens/journey_tab.dart';
 import 'screens/nutrition_tab.dart';
 import 'screens/wellness_tab.dart';
 import 'screens/profile_tab.dart';
-import 'screens/doctor_tab.dart';
 import 'screens/tracker/maternal_tracker_screen.dart';
-import 'screens/tracker/tracker_history_screen.dart';
 import 'screens/chat/ai_chat_screen.dart';
-import 'screens/partner_linking_screen.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'screens/paywall_screen.dart';
 
-void main() async {
-  // 1. Start the Flutter engine first
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set preferred orientations
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
-  // 2. Load your environment variables (API Key)
+  // Load environment variables
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
-    debugPrint("Env file error: $e");
+    debugPrint("Warning: .env file not found. AI features may not work.");
   }
 
-  // 3. Wake up Firebase
-  try {
-    if (kIsWeb) {
-      await Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: "AIzaSyAyJ5GuJA-fk-OYoPW2G_8tfxFIEGlGewE",
-          appId: "1:733225462613:web:44fffa9f94702629d1dddc",
-          messagingSenderId: "733225462613",
-          projectId: "gen-lang-client-0701710841",
-          authDomain: "gen-lang-client-0701710841.firebaseapp.com",
-          storageBucket: "gen-lang-client-0701710841.firebasestorage.app",
-        )
-      );
-    } else {
-      await Firebase.initializeApp();
-    }
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-    // Tell Firestore to use your specific database name
-    FirebaseFirestore.instanceFor(
-      app: Firebase.app(), 
-      databaseId: '(default)'
-    );
-  } catch (e) {
-    debugPrint("Firebase init error: $e");
-  }
-
-  // 4. Run the app
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => TrackerProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const MammaBuddyApp(),
     ),
   );
 }
 
-final GoRouter _router = GoRouter(
+final _router = GoRouter(
   initialLocation: '/splash',
   routes: [
     GoRoute(
@@ -86,94 +62,46 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => const SplashScreen(),
     ),
     GoRoute(
-      path: '/welcome',
-      builder: (context, state) => const WelcomeScreen(),
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingScreen(),
     ),
     GoRoute(
       path: '/setup',
       builder: (context, state) => const SetupScreen(),
     ),
     GoRoute(
+      path: '/',
+      builder: (context, state) => const AppLayoutWrapper(child: HomeTab()),
+    ),
+    GoRoute(
+      path: '/nutrition',
+      builder: (context, state) => const AppLayoutWrapper(child: NutritionTab()),
+    ),
+    GoRoute(
+      path: '/wellness',
+      builder: (context, state) => const AppLayoutWrapper(child: WellnessTab()),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const AppLayoutWrapper(child: ProfileTab()),
+    ),
+    GoRoute(
+      path: '/tracker',
+      builder: (context, state) => const MaternalTrackerScreen(),
+    ),
+    GoRoute(
+      path: '/chat',
+      builder: (context, state) => const AIChatScreen(),
+    ),
+    GoRoute(
       path: '/paywall',
       builder: (context, state) => const PaywallScreen(),
     ),
-    ShellRoute(
-      builder: (context, state, child) {
-        return AppLayoutWrapper(child: child);
-      },
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const HomeTab(),
-        ),
-        GoRoute(
-          path: '/journey',
-          builder: (context, state) => const JourneyTab(),
-        ),
-        GoRoute(
-          path: '/nutrition',
-          builder: (context, state) => const NutritionTab(),
-        ),
-        GoRoute(
-          path: '/wellness',
-          builder: (context, state) => const WellnessTab(),
-        ),
-        GoRoute(
-          path: '/profile',
-          builder: (context, state) => const ProfileTab(),
-        ),
-        GoRoute(
-          path: '/doctor',
-          builder: (context, state) => const DoctorTab(),
-        ),
-        GoRoute(
-          path: '/tracker',
-          builder: (context, state) => const MaternalTrackerScreen(),
-        ),
-        GoRoute(
-          path: '/history',
-          builder: (context, state) => const TrackerHistoryScreen(),
-        ),
-        GoRoute(
-          path: '/chat',
-          builder: (context, state) => const AiChatScreen(),
-        ),
-        GoRoute(
-          path: '/partner',
-          builder: (context, state) => const PartnerLinkingScreen(),
-        ),
-      ],
-    ),
   ],
-  redirect: (context, state) {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-
-    // Check for logged in user
-    final bool loggedIn = auth.firebaseUser != null;
-
-    // Check if user has completed onboarding
-    final bool hasUserData = auth.userData != null;
-
-    final String location = state.uri.path;
-    final bool goingToAuth = location == '/welcome' || location == '/splash' || location == '/setup';
-
-    if (auth.isLoading) return null;
-
-    // Flow: Splash -> Welcome -> Setup -> Home
-    if (!loggedIn && !goingToAuth) {
-      return '/welcome';
-    }
-
-    if (loggedIn && !hasUserData && location != '/setup') {
-      return '/setup';
-    }
-
-    if (loggedIn && hasUserData && goingToAuth) {
-      return '/';
-    }
-
-    return null;
-  },
 );
 
 class MammaBuddyApp extends StatelessWidget {
@@ -183,193 +111,217 @@ class MammaBuddyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp.router(
-      title: 'MammaBuddy',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeProvider.themeMode,
+      title: 'Mamma Buddy',
       routerConfig: _router,
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFE8748A),
+          primary: const Color(0xFFE8748A),
+          secondary: const Color(0xFF2E8B72),
+          surface: Colors.white,
+        ),
+        useMaterial3: true,
+        textTheme: GoogleFonts.plusJakartaSansTextTheme(),
+        scaffoldBackgroundColor: const Color(0xFFFAFBFA),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFE8748A),
+          brightness: Brightness.dark,
+          primary: const Color(0xFFE8748A),
+          secondary: const Color(0xFF2E8B72),
+          surface: const Color(0xFF121212),
+        ),
+        useMaterial3: true,
+        textTheme: GoogleFonts.plusJakartaSansTextTheme(
+          ThemeData.dark().textTheme,
+        ),
+        scaffoldBackgroundColor: const Color(0xFF0F0F1A),
+      ),
+      themeMode: themeProvider.themeMode,
     );
   }
 }
 
-class AppLayoutWrapper extends StatefulWidget {
-  final Widget child;
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
 
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.firebaseUser == null) {
+      context.go('/onboarding');
+    } else {
+      await authProvider.refreshUserData();
+      if (!mounted) return;
+      if (authProvider.userData == null) {
+        context.go('/setup');
+      } else {
+        context.go('/');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('🌸', style: TextStyle(fontSize: 80)),
+            SizedBox(height: 24),
+            CircularProgressIndicator(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AppLayoutWrapper extends StatelessWidget {
+  final Widget child;
   const AppLayoutWrapper({super.key, required this.child});
 
   @override
-  State<AppLayoutWrapper> createState() => _AppLayoutWrapperState();
-}
-
-class _AppLayoutWrapperState extends State<AppLayoutWrapper> {
-  @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDark = themeProvider.isDarkMode;
-    final location = GoRouterState.of(context).matchedLocation;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final location = GoRouterState.of(context).uri.path;
 
     return Scaffold(
-      extendBody: true, // Allow body to flow under the bottom nav
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 30,
-              height: 30,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Color(0xFF2E8B72), Color(0xFF6B4B9A)],
-                ),
-              ),
-              child: const Icon(Icons.child_care, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              "MAMMA BUDDY",
-              style: TextStyle(
-                fontSize: 12,
-                letterSpacing: 2.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-            onPressed: () {
-              themeProvider.toggleTheme();
-            },
-          )
-        ],
-      ),
       body: Stack(
         children: [
-          // ── Animated Background Blobs ──
+          // Background blobs for consistency
           Positioned(
             top: -100,
+            right: -100,
+            child: _buildBgBlob(const Color(0xFFE8748A).withOpacity(isDark ? 0.1 : 0.05)),
+          ),
+          Positioned(
+            bottom: -50,
             left: -100,
-            child: _buildBlob(const Color(0xFF2E8B72).withOpacity(isDark ? 0.1 : 0.2))
-              .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              .move(begin: const Offset(-20, -20), end: const Offset(40, 40), duration: 10.seconds, curve: Curves.easeInOut),
-          ),
-          Positioned(
-            top: 200,
-            right: -150,
-            child: _buildBlob(const Color(0xFF2A7A90).withOpacity(isDark ? 0.1 : 0.2))
-              .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              .move(begin: const Offset(30, 0), end: const Offset(-30, 50), duration: 15.seconds, curve: Curves.easeInOut),
-          ),
-          Positioned(
-            bottom: -100,
-            left: 50,
-            child: _buildBlob(const Color(0xFF6B4B9A).withOpacity(isDark ? 0.1 : 0.2))
-              .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              .move(begin: const Offset(0, 30), end: const Offset(0, -30), duration: 12.seconds, curve: Curves.easeInOut),
+            child: _buildBgBlob(const Color(0xFF2E8B72).withOpacity(isDark ? 0.1 : 0.05)),
           ),
           
-          SafeArea(child: widget.child),
-        ],
-      ),
-      floatingActionButton: location == '/chat'
-          ? null
-          : FloatingActionButton(
-              onPressed: () => context.push('/chat'),
-              backgroundColor: const Color(0xFF6B4B9A),
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: const Icon(CupertinoIcons.chat_bubble_2_fill, color: Colors.white, size: 20),
-            ).animate().scale(delay: 500.ms, duration: 400.ms, curve: Curves.elasticOut),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: (location == '/chat' || location == '/setup') ? null : _buildBottomNav(context, location),
-    );
-  }
-
-  Widget _buildBlob(Color color) {
-    return Container(
-      width: 350,
-      height: 350,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context, String location) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    int getIndex(String loc) {
-      if (loc == '/') return 0;
-      if (loc == '/journey') return 1;
-      if (loc == '/tracker' || loc == '/history') return 2;
-      if (loc == '/wellness') return 3;
-      if (loc == '/profile' || loc == '/partner') return 4;
-      return 0;
-    }
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-      height: 70,
-      decoration: BoxDecoration(
-        color: isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+          child,
+          
+          // Custom Bottom Navigation Bar
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: SafeArea(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(context, Icons.home_rounded, '/', location == '/', isDark),
+                    _buildNavItem(context, Icons.restaurant_menu_rounded, '/nutrition', location == '/nutrition', isDark),
+                    const SizedBox(width: 40), // Space for FAB
+                    _buildNavItem(context, Icons.spa_rounded, '/wellness', location == '/wellness', isDark),
+                    _buildNavItem(context, Icons.person_rounded, '/profile', location == '/profile', isDark),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          // Floating Action Button Center
+          Positioned(
+            bottom: 45,
+            left: MediaQuery.of(context).size.width / 2 - 28,
+            child: GestureDetector(
+              onTap: () => context.push('/chat'),
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE8748A), Color(0xFF6B4B9A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE8748A).withOpacity(0.4),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 28),
+              ),
+            ),
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(0, CupertinoIcons.heart_fill, 'Home', getIndex(location) == 0, context),
-          _buildNavItem(1, Icons.child_care_rounded, 'Baby', getIndex(location) == 1, context),
-          _buildNavItem(2, CupertinoIcons.graph_square_fill, 'Vitals', getIndex(location) == 2, context),
-          _buildNavItem(3, CupertinoIcons.sparkles, 'Wellness', getIndex(location) == 3, context),
-          _buildNavItem(4, CupertinoIcons.person_fill, 'Profile', getIndex(location) == 4, context),
-        ],
-      ),
-    ).animate().slideY(begin: 1.0, duration: 500.ms, curve: Curves.easeOutCubic);
+    );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, bool isActive, BuildContext context) {
-    final color = isActive ? const Color(0xFF6B4B9A) : Colors.grey.withOpacity(0.5);
-    
+  Widget _buildNavItem(BuildContext context, IconData icon, String path, bool isActive, bool isDark) {
     return GestureDetector(
-      onTap: () {
-        switch (index) {
-          case 0: context.go('/'); break;
-          case 1: context.go('/journey'); break;
-          case 2: context.go('/tracker'); break;
-          case 3: context.go('/wellness'); break;
-          case 4: context.go('/profile'); break;
-        }
-      },
+      onTap: () => context.go(path),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: isActive ? color.withOpacity(0.1) : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(icon, color: color, size: isActive ? 24 : 20),
+          Icon(
+            icon,
+            color: isActive 
+                ? const Color(0xFFE8748A) 
+                : (isDark ? Colors.white38 : const Color(0xFFB0A8C0)),
+            size: 26,
           ),
           if (isActive)
-            Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: color))
-              .animate().fadeIn().scale(begin: const Offset(0.8, 0.8)),
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              width: 4,
+              height: 4,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8748A),
+                shape: BoxShape.circle,
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBgBlob(Color color) {
+    return Container(
+      width: 300,
+      height: 300,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
       ),
     );
   }

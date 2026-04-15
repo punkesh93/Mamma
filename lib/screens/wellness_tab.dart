@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
 import '../core/services/openrouter_service.dart';
@@ -176,7 +175,7 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
                   shape: BoxShape.circle,
                   color: _rose.withOpacity(0.05),
                 ),
-              ).animate().fadeIn(duration: 2.seconds).scale(begin: const Offset(0.5, 0.5)),
+              ),
             ),
 
           SingleChildScrollView(
@@ -219,7 +218,7 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
                 const SizedBox(height: 32),
 
                 // ── Section: A Moment of Calm ────────────────────────────────
-                _buildSectionHeader('Sonic Peace', CupertinoIcons.music_note_2, const Color(0xFF1DB954), isDark),
+                _buildSectionHeader('Sonic Peace', Icons.music_note, const Color(0xFF1DB954), isDark),
                 const SizedBox(height: 16),
                 _buildSpotifyCard(isDark),
                 const SizedBox(height: 32),
@@ -317,7 +316,7 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
               height: 1.4,
               color: isDark ? Colors.white : _ink,
             ),
-          ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1),
+          ),
         ],
       ),
     );
@@ -356,12 +355,12 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
                 ],
               ),
               const Spacer(),
-              const Icon(CupertinoIcons.music_note_2, color: Colors.white, size: 24),
+              const Icon(Icons.music_note, color: Colors.white, size: 24),
             ],
           ),
         ),
       ),
-    ).animate().fadeIn(delay: 200.ms);
+    );
   }
 
   Widget _buildBreathingCard(bool isDark) {
@@ -383,7 +382,7 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
             Text(
               _formatTime(_breathingSeconds),
               style: GoogleFonts.dmSerifDisplay(fontSize: 36, color: _sky),
-            ).animate().fadeIn(),
+            ),
             const SizedBox(height: 4),
             Text(
               'Synchronize your breath',
@@ -428,7 +427,7 @@ class _WellnessTabState extends State<WellnessTab> with TickerProviderStateMixin
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [
+                   colors: [
                     _sky.withOpacity(0.3 * _breathingAnimation.value),
                     _sky.withOpacity(0.0),
                   ],

@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
@@ -357,73 +356,43 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Greeting Header ───────────────────────────────────────
-                _buildHeader(currentUser, week, daysTracked, isDark)
-                    .animate().fadeIn(duration: 400.ms).slideX(begin: -0.05),
-                const SizedBox(height: 24),
-
-                // ── Week Block ───────────────────────────────────────────
-                _buildWeekBlock(week, milestone, isDark)
-                    .animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),
-                const SizedBox(height: 16),
-
-                // ── Daily Check-in Nudge ──────────────────────────────────────────
-                if (_shouldShowCheckIn(displayUser)) 
-                  _buildCheckInNudge(displayUser)
-                      .animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.9, 0.9)),
-                const SizedBox(height: 16),
-
-                // ── AI Insights Card ─────────────────────────────────────
-                _buildAIInsightsCard(displayUser, isDark)
-                    .animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
-                const SizedBox(height: 16),
-
                 // ── Personalized Tips Section ────────────────────────────
-                _buildPersonalizedTipsSection(displayUser, isDark)
-                    .animate().fadeIn(delay: 400.ms),
+                _buildPersonalizedTipsSection(displayUser, isDark),
                 const SizedBox(height: 24),
 
                 // ── Nutrition Section ────────────────────────────────────
-                _buildNutritionSection(displayUser, isDark)
-                    .animate().fadeIn(delay: 500.ms),
+                _buildNutritionSection(displayUser, isDark),
                 const SizedBox(height: 16),
 
                 // ── Quick Meal Log Button (Only for Mother) ───────────────────────────────
                 if (currentUser.isPartnerAccount != true) ...[
-                  _buildQuickMealLogButton()
-                      .animate().fadeIn(delay: 550.ms),
+                  _buildQuickMealLogButton(),
                   const SizedBox(height: 16),
                 ],
 
                 // ── Wellness Grid ────────────────────────────────────────
-                _buildWellnessGrid(isDark)
-                    .animate().fadeIn(delay: 600.ms),
+                _buildWellnessGrid(isDark),
                 const SizedBox(height: 16),
 
                 // ── Mood Analyzer ─────────────────────────────────────────
-                _buildMoodAnalyzer(displayUser, isDark)
-                    .animate().fadeIn(delay: 650.ms),
+                _buildMoodAnalyzer(displayUser, isDark),
                 const SizedBox(height: 16),
 
                 // ── Weekly Progress ──────────────────────────────────────
-                _buildWeeklyProgress(displayUser)
-                    .animate().fadeIn(delay: 700.ms),
+                _buildWeeklyProgress(displayUser),
                 const SizedBox(height: 16),
 
                 // ── Partner Widget ────────────────────────────────────────
-                _buildPartnerWidget(currentUser, isDark)
-                    .animate().fadeIn(delay: 750.ms),
+                _buildPartnerWidget(currentUser, isDark),
                 const SizedBox(height: 16),
 
                 // ── Doctor Reports ───────────────────────────────────────
-                _buildDoctorReportsButton(isDark)
-                    .animate().fadeIn(delay: 800.ms),
+                _buildDoctorReportsButton(isDark),
                 const SizedBox(height: 16),
 
                 // ── Symptom Checker (Only for Mother) ──────────────────────────────
                 if (currentUser.isPartnerAccount != true)
-                  _buildSymptomChecker(isDark)
-                      .animate().fadeIn(delay: 850.ms),
+                  _buildSymptomChecker(isDark),
               ],
             ),
           ),
@@ -444,9 +413,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         color: color,
         shape: BoxShape.circle,
       ),
-    ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-     .moveY(begin: -20, end: 20, duration: 4.seconds, curve: Curves.easeInOut)
-     .moveX(begin: -10, end: 10, duration: 3.seconds, curve: Curves.easeInOut);
+    );
   }
 
   Widget _buildHeader(UserModel user, int week, int daysTracked, bool isDark) {
@@ -565,7 +532,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           ),
         ],
       ),
-    ).animate().shake(delay: 1.seconds);
+    );
   }
 
   Widget _buildPersonalizedTipsSection(UserModel user, bool isDark) {

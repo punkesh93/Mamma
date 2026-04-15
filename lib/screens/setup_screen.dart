@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../models/user_model.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -174,7 +173,7 @@ class _SetupScreenState extends State<SetupScreen> {
             const SizedBox(width: 16),
             Expanded(child: _buildRoleCard('Partner 🤝', true, isDark)),
           ],
-        ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
+        ),
         const SizedBox(height: 32),
 
         // Name input
@@ -192,7 +191,7 @@ class _SetupScreenState extends State<SetupScreen> {
         // Continue button
         _buildPrimaryButton('Continue', () => setState(() => _step = 2), rose),
       ],
-    ).animate().fadeIn(duration: 500.ms);
+    );
   }
 
   Widget _buildRoleCard(String label, bool isPartner, bool isDark) {
@@ -261,7 +260,7 @@ class _SetupScreenState extends State<SetupScreen> {
           prefixIcon: Icon(Icons.person_outline, color: isDark ? Colors.white38 : Colors.grey, size: 20),
         ),
       ),
-    ).animate().fadeIn(delay: 300.ms).slideX(begin: 0.05);
+    );
   }
 
   Widget _buildRegionSelector(bool isDark) {
@@ -289,7 +288,7 @@ class _SetupScreenState extends State<SetupScreen> {
           });
         },
       ),
-    ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.05);
+    );
   }
 
   Widget _buildPrimaryButton(String label, VoidCallback onTap, Color color) {
@@ -315,7 +314,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
         ),
       ),
-    ).animate().fadeIn(delay: 500.ms);
+    );
   }
 
   Widget _buildStep2() {
@@ -365,7 +364,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ],
         ),
       ],
-    ).animate().fadeIn();
+    );
   }
 
   Widget _buildTextField(String key, String hint, IconData icon, bool isDark) {
@@ -493,7 +492,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ],
         ),
       ],
-    ).animate().fadeIn();
+    );
   }
 
   Widget _buildQuietModeToggle(bool isDark) {

@@ -56,7 +56,8 @@ You're doing amazing work! 💕
   String _getFallbackResponse(String type) {
     final response = _fallbackResponses[type] ?? _fallbackResponses['wellness']!;
     if (response is List) {
-      return (response as List<String>)[DateTime.now().millisecond % response.length];
+      final resList = response as List<String>;
+      return resList[DateTime.now().millisecond % resList.length];
     }
     return response as String;
   }
