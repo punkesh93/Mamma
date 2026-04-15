@@ -242,6 +242,14 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final user = auth.userData;
     if (user == null || _personalizedTips != null) return;
+
+    if (!(user.isPremium ?? false)) {
+      setState(() {
+        _personalizedTips = "Tip 1: Listen to your body and rest when you feel tired.\nTip 2: Stay hydrated by drinking at least 8-10 glasses of water daily.\nTip 3: Eat small, frequent meals to help with energy levels.";
+        _isLoadingTips = false;
+      });
+      return;
+    }
     
     setState(() => _isLoadingTips = true);
     try {
@@ -325,8 +333,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     final milestone = _getMilestone(week);
     final daysTracked = displayUser.daysTracked ?? 1;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -335,11 +346,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // ── Greeting Header ───────────────────────────────────────
-                _buildHeader(currentUser, week, daysTracked),
+                _buildHeader(currentUser, week, daysTracked, isDark),
                 const SizedBox(height: 16),
 
                 // ── Week Block ───────────────────────────────────────────
-                _buildWeekBlock(week, milestone),
+                _buildWeekBlock(week, milestone, isDark),
                 const SizedBox(height: 16),
 
                 // ── Daily Check-in Nudge ──────────────────────────────────────────
@@ -347,27 +358,29 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 const SizedBox(height: 16),
 
                 // ── AI Insights Card ─────────────────────────────────────
-                _buildAIInsightsCard(displayUser),
+                _buildAIInsightsCard(displayUser, isDark),
                 const SizedBox(height: 16),
 
                 // ── Personalized Tips Section ────────────────────────────
-                _buildPersonalizedTipsSection(displayUser),
+                _buildPersonalizedTipsSection(displayUser, isDark),
                 const SizedBox(height: 16),
 
                 // ── Nutrition Section ────────────────────────────────────
-                _buildNutritionSection(displayUser),
+                _buildNutritionSection(displayUser, isDark),
                 const SizedBox(height: 16),
 
-                // ── Quick Meal Log Button ─────────────────────────────────
-                _buildQuickMealLogButton(),
-                const SizedBox(height: 16),
+                // ── Quick Meal Log Button (Only for Mother) ───────────────────────────────
+                if (currentUser.isPartnerAccount != true) ...[
+                  _buildQuickMealLogButton(),
+                  const SizedBox(height: 16),
+                ],
 
                 // ── Wellness Grid ────────────────────────────────────────
-                _buildWellnessGrid(),
+                _buildWellnessGrid(isDark),
                 const SizedBox(height: 16),
 
                 // ── Mood Analyzer ─────────────────────────────────────────
-                _buildMoodAnalyzer(displayUser),
+                _buildMoodAnalyzer(displayUser, isDark),
                 const SizedBox(height: 16),
 
                 // ── Weekly Progress ──────────────────────────────────────
@@ -375,28 +388,29 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 const SizedBox(height: 16),
 
                 // ── Partner Widget ────────────────────────────────────────
-                _buildPartnerWidget(currentUser),
+                _buildPartnerWidget(currentUser, isDark),
                 const SizedBox(height: 16),
 
-                // ── Doctor Reports ───────────────────────────────────────
-                _buildDoctorReportsButton(),
+                // ── Doctor Reports (View Only for Partner?) ───────────────────────
+                _buildDoctorReportsButton(isDark),
                 const SizedBox(height: 16),
 
-                // ── Symptom Checker ──────────────────────────────────────
-                _buildSymptomChecker(),
+                // ── Symptom Checker (Only for Mother) ──────────────────────────────
+                if (currentUser.isPartnerAccount != true)
+                  _buildSymptomChecker(isDark),
               ],
             ),
           ),
 
           // ── Meal Popup ─────────────────────────────────────────────────
-          if (_showMealPopup) _buildMealPopup(),
-          if (_activeWellness != null) _buildWellnessModal(),
+          if (_showMealPopup) _buildMealPopup(isDark),
+          if (_activeWellness != null) _buildWellnessModal(isDark),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(UserModel user, int week, int daysTracked) {
+  Widget _buildHeader(UserModel user, int week, int daysTracked, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -405,12 +419,19 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           children: [
             Text(
               'Hello, ${user.name.split(' ').first} 🌸',
-              style: GoogleFonts.dmSerifDisplay(fontSize: 28, color: Theme.of(context).colorScheme.onSurface),
+              style: GoogleFonts.dmSerifDisplay(
+                fontSize: 28, 
+                color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               'Week $week • $daysTracked Days Tracked',
-              style: GoogleFonts.plusJakartaSans(fontSize: 14, color: _mauve, fontStyle: FontStyle.italic),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14, 
+                color: isDark ? Colors.white70 : _mauve, 
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ],
         ),
@@ -431,7 +452,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange.shade800,
+                  color: isDark ? Colors.orange[300] : Colors.orange.shade800,
                 ),
               ),
             ],
@@ -508,7 +529,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     ).animate().shake(delay: 1.seconds);
   }
 
-  Widget _buildPersonalizedTipsSection(UserModel user) {
+  Widget _buildPersonalizedTipsSection(UserModel user, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -521,7 +542,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 'Personalized Tips',
                 style: GoogleFonts.dmSerifDisplay(
                   fontSize: 22,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const Icon(CupertinoIcons.sparkles, color: _rose, size: 20),
@@ -533,16 +554,16 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: isDark ? Colors.white.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
+            boxShadow: isDark ? [] : [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )
             ],
-            border: Border.all(color: _rose.withOpacity(0.1)),
+            border: Border.all(color: _rose.withOpacity(isDark ? 0.2 : 0.1)),
           ),
           child: _isLoadingTips
               ? Center(
@@ -556,7 +577,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text('Crafting your weekly AI tips...', style: GoogleFonts.plusJakartaSans(color: _mauve, fontSize: 13, fontStyle: FontStyle.italic)),
+                      Text('Crafting your weekly AI tips...', style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white70 : _mauve, fontSize: 13, fontStyle: FontStyle.italic)),
                     ],
                   ),
                 )
@@ -566,18 +587,18 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     MarkdownBody(
                       data: _personalizedTips ?? "We couldn't load your tips right now. Please try again later.",
                       styleSheet: MarkdownStyleSheet(
-                        p: GoogleFonts.plusJakartaSans(fontSize: 14, color: Theme.of(context).colorScheme.onSurface, height: 1.5),
+                        p: GoogleFonts.plusJakartaSans(fontSize: 14, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface, height: 1.5),
                         listBullet: TextStyle(color: _rose),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Divider(),
+                    Divider(color: isDark ? Colors.white12 : null),
                     const SizedBox(height: 8),
                     Text(
                       'Content for informational purposes only; consult your healthcare provider for medical concerns.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10,
-                        color: Colors.grey.shade500,
+                        color: isDark ? Colors.white38 : Colors.grey.shade500,
                         fontStyle: FontStyle.italic,
                       ),
                       textAlign: TextAlign.center,
@@ -589,14 +610,14 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildWeekBlock(int week, BabyMilestone milestone) {
+  Widget _buildWeekBlock(int week, BabyMilestone milestone, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark ? Colors.white.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _rose.withOpacity(0.1)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: _rose.withOpacity(isDark ? 0.2 : 0.1)),
+        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         children: [
@@ -618,7 +639,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   children: [
                     Row(
                       children: [
-                        Text('Week $week', style: GoogleFonts.dmSerifDisplay(fontSize: 20, color: Theme.of(context).colorScheme.onSurface)),
+                        Text('Week $week', style: GoogleFonts.dmSerifDisplay(fontSize: 20, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -628,25 +649,25 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text('${milestone.weight} • ${milestone.length}', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: _mauve)),
+                    Text('${milestone.weight} • ${milestone.length}', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? Colors.white60 : _mauve)),
                   ],
                 ),
               ),
               IconButton(
                 onPressed: () => setState(() => _weekExpanded = !_weekExpanded),
-                icon: Icon(_weekExpanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down, color: _mauve),
+                icon: Icon(_weekExpanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down, color: isDark ? Colors.white : _mauve),
               ),
             ],
           ),
           if (_weekExpanded) ...[
             const SizedBox(height: 12),
-            const Divider(),
+            Divider(color: isDark ? Colors.white12 : null),
             const SizedBox(height: 12),
             MarkdownBody(
               data: milestone.development, 
               styleSheet: MarkdownStyleSheet(
-                p: GoogleFonts.plusJakartaSans(fontSize: 14, color: Theme.of(context).colorScheme.onSurface, height: 1.5),
-                strong: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+                p: GoogleFonts.plusJakartaSans(fontSize: 14, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface, height: 1.5),
+                strong: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface),
               ),
             ),
             const SizedBox(height: 12),
@@ -667,11 +688,18 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildAIInsightsCard(UserModel user) {
+  Widget _buildAIInsightsCard(UserModel user, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [_lavender.withOpacity(0.1), _rose.withOpacity(0.08)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(
+          colors: [
+            _lavender.withOpacity(isDark ? 0.2 : 0.1), 
+            _rose.withOpacity(isDark ? 0.2 : 0.08)
+          ], 
+          begin: Alignment.topLeft, 
+          end: Alignment.bottomRight
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _lavender.withOpacity(0.15)),
       ),
@@ -684,10 +712,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 width: 32,
                 height: 32,
                 decoration: const BoxDecoration(gradient: LinearGradient(colors: [_lavender, _rose]), shape: BoxShape.circle),
-                child: Icon(CupertinoIcons.lightbulb_fill, color: Theme.of(context).colorScheme.surface, size: 18),
+                child: Icon(CupertinoIcons.lightbulb_fill, color: Colors.white, size: 18),
               ),
               const SizedBox(width: 8),
-              Text('AI Insights', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
+              Text('AI Insights', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
               const Spacer(),
               IconButton(
                 onPressed: _loadAIInsight,
@@ -701,7 +729,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               children: [
                 SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: _rose)),
                 const SizedBox(width: 8),
-                Text('Analyzing your week…', style: GoogleFonts.plusJakartaSans(fontSize: 14, color: _mauve, fontStyle: FontStyle.italic)),
+                Text('Analyzing your week…', style: GoogleFonts.plusJakartaSans(fontSize: 14, color: isDark ? Colors.white70 : _mauve, fontStyle: FontStyle.italic)),
               ],
             )
           else
@@ -710,13 +738,13 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               styleSheet: MarkdownStyleSheet(
                 p: GoogleFonts.plusJakartaSans(
                   fontSize: 14, 
-                  color: Theme.of(context).colorScheme.onSurface, 
+                  color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface, 
                   fontStyle: FontStyle.italic, 
                   height: 1.5
                 ),
                 strong: GoogleFonts.plusJakartaSans(
                   fontSize: 14, 
-                  color: Theme.of(context).colorScheme.onSurface, 
+                  color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface, 
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -726,7 +754,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildNutritionSection(UserModel user) {
+  Widget _buildNutritionSection(UserModel user, bool isDark) {
     final protein = user.achievedToday?.protein ?? 0;
     final iron = user.achievedToday?.iron ?? 0;
     final calcium = user.achievedToday?.calcium ?? 0;
@@ -738,10 +766,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark ? Colors.white.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _sage.withOpacity(0.1)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: _sage.withOpacity(isDark ? 0.2 : 0.1)),
+        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -753,7 +781,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 children: [
                   const Icon(CupertinoIcons.cart_fill, color: _sage, size: 18),
                   const SizedBox(width: 8),
-                  Text("Today's Nutrition 🥗", style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
+                  Text("Today's Nutrition 🥗", style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
                 ],
               ),
               Container(
@@ -764,11 +792,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             ],
           ),
           const SizedBox(height: 16),
-          _buildNutrientBar('Protein', protein, proteinGoal, 'g', _rose),
+          _buildNutrientBar('Protein', protein, proteinGoal, 'g', _rose, isDark),
           const SizedBox(height: 8),
-          _buildNutrientBar('Iron', iron, ironGoal, 'mg', _sky),
+          _buildNutrientBar('Iron', iron, ironGoal, 'mg', _sky, isDark),
           const SizedBox(height: 8),
-          _buildNutrientBar('Calcium', calcium, calciumGoal, 'mg', _lavender),
+          _buildNutrientBar('Calcium', calcium, calciumGoal, 'mg', _lavender, isDark),
           const SizedBox(height: 16),
           Row(
             children: List.generate(8, (i) => Expanded(
@@ -776,7 +804,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 height: 24,
                 margin: EdgeInsets.only(right: i < 7 ? 4 : 0),
                 decoration: BoxDecoration(
-                  color: i < water ? _sky : Colors.transparent,
+                  color: i < water ? _sky : (isDark ? Colors.white12 : Colors.transparent),
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(color: _sky.withOpacity(0.3)),
                 ),
@@ -787,7 +815,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Water', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: _mauve)),
+              Text('Water', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? Colors.white60 : _mauve)),
               Text('$water/8 💧', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: _sky)),
             ],
           ),
@@ -796,8 +824,31 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildNutrientBar(String label, int current, int goal, String unit, Color color) {
+  Widget _buildNutrientBar(String label, int current, int goal, String unit, Color color, bool isDark) {
     final progress = (current / goal).clamp(0.0, 1.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? Colors.white60 : _mauve)),
+            Text('$current$unit / $goal$unit', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 8,
+            backgroundColor: color.withOpacity(isDark ? 0.2 : 0.15),
+            valueColor: AlwaysStoppedAnimation(color),
+          ),
+        ),
+      ],
+    );
+  }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -837,14 +888,14 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildWellnessGrid() {
+  Widget _buildWellnessGrid(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark ? Colors.white.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _rose.withOpacity(0.1)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: _rose.withOpacity(isDark ? 0.2 : 0.1)),
+        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -853,7 +904,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             children: [
               const Icon(CupertinoIcons.heart_fill, color: _rose, size: 18),
               const SizedBox(width: 8),
-              Text('Your Wellness Today 🧘', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
+              Text('Your Wellness Today 🧘', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
             ],
           ),
           const SizedBox(height: 16),
@@ -864,7 +915,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
             childAspectRatio: 1.5,
-            children: _wellnessActivities.map((act) => _buildWellnessButton(act)).toList(),
+            children: _wellnessActivities.map((act) => _buildWellnessButton(act, isDark)).toList(),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -884,16 +935,22 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildWellnessButton(Map<String, dynamic> act) {
+  Widget _buildWellnessButton(Map<String, dynamic> act, bool isDark) {
     final isActive = _activeWellness == act['key'];
     return GestureDetector(
       onTap: () => setState(() => _activeWellness = act['key']),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isActive ? (act['color'] as Color).withOpacity(0.2) : _cream,
+          color: isActive 
+              ? (act['color'] as Color).withOpacity(0.2) 
+              : (isDark ? Colors.white.withOpacity(0.05) : _cream),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isActive ? (act['color'] as Color).withOpacity(0.4) : _rose.withOpacity(0.1)),
+          border: Border.all(
+            color: isActive 
+                ? (act['color'] as Color).withOpacity(0.4) 
+                : _rose.withOpacity(isDark ? 0.2 : 0.1)
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -901,25 +958,32 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           children: [
             Text(act['icon'], style: const TextStyle(fontSize: 24)),
             const SizedBox(height: 4),
-            Text(act['label'], style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
-            Text(act['duration'], style: GoogleFonts.plusJakartaSans(fontSize: 10, color: _mauve)),
+            Text(
+              act['label'], 
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13, 
+                fontWeight: FontWeight.w600, 
+                color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface
+              )
+            ),
+            Text(act['duration'], style: GoogleFonts.plusJakartaSans(fontSize: 10, color: isDark ? Colors.white54 : _mauve)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMoodAnalyzer(UserModel user) {
-    final isPremium = user.plan == 'premium';
-    final remaining = isPremium ? 'Unlimited' : '${3 - _moodUsage} left';
+  Widget _buildMoodAnalyzer(UserModel user, bool isDark) {
+    final isPremium = user.isPremium ?? false;
+    final remaining = isPremium ? 'Unlimited ✨' : '${3 - _moodUsage} left';
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark ? Colors.white.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _lavender.withOpacity(0.1)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: _lavender.withOpacity(isDark ? 0.2 : 0.1)),
+        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -931,10 +995,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                 children: [
                   const Icon(CupertinoIcons.lightbulb_fill, color: _lavender, size: 18),
                   const SizedBox(width: 8),
-                  Text('How Are You Feeling? 💭', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
+                  Text("How Are You Feeling? 💭", style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
                 ],
               ),
-              Text(remaining, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: _mauve, fontWeight: FontWeight.w600)),
+              Text(remaining, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? Colors.white70 : _mauve, fontWeight: FontWeight.w600)),
             ],
           ),
           const SizedBox(height: 16),
@@ -957,11 +1021,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   Expanded(
                     child: _isAnalyzingMood
                       ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-                      : Text(_moodFeedback!, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: Theme.of(context).colorScheme.onSurface, height: 1.4)),
+                      : Text(_moodFeedback!, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? Colors.white70 : Theme.of(context).colorScheme.onSurface, height: 1.4)),
                   ),
                   IconButton(
                     onPressed: () => setState(() => _moodFeedback = null),
-                    icon: const Icon(CupertinoIcons.xmark, size: 16, color: _mauve),
+                    icon: Icon(CupertinoIcons.xmark, size: 16, color: isDark ? Colors.white54 : _mauve),
                   ),
                 ],
               ),
@@ -970,9 +1034,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => context.go('/profile'),
+                  onPressed: () => context.push('/paywall'),
                   style: ElevatedButton.styleFrom(backgroundColor: _lavender, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 10)),
-                  child: Text('Unlimited with MamaBuddy Plus', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 12)),
+                  child: Text('Unlimited with MammaBuddy Plus', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 12)),
                 ),
               ),
           ],
@@ -1052,18 +1116,24 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildPartnerWidget(UserModel user) {
+  Widget _buildPartnerWidget(UserModel user, bool isDark) {
     final hasPartner = user.partnerId != null;
 
     return GestureDetector(
-      onTap: () => context.go('/partner'),
+      onTap: () {
+        if (!(user.isPremium ?? false)) {
+          context.push('/paywall');
+          return;
+        }
+        context.go('/partner');
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: isDark ? Colors.white.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _rose.withOpacity(0.1)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          border: Border.all(color: _rose.withOpacity(isDark ? 0.2 : 0.1)),
+          boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Row(
           children: [
@@ -1078,30 +1148,40 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(hasPartner ? 'Partner Connected ✓' : 'Partner Mode', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
-                  Text(hasPartner ? 'Tap to view shared progress' : 'Invite your partner to share the journey', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: _mauve)),
+                  Text(
+                    hasPartner ? 'Partner Connected ✓' : 'Partner Mode', 
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14, 
+                      fontWeight: FontWeight.w600, 
+                      color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface
+                    )
+                  ),
+                  Text(
+                    hasPartner ? 'Tap to view shared progress' : 'Invite your partner to share the journey', 
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? Colors.white54 : _mauve)
+                  ),
                 ],
               ),
             ),
             if (hasPartner)
               Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text('Accepted', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w600))),
-            if (!hasPartner) const Icon(CupertinoIcons.chevron_right, color: _mauve, size: 20),
+            if (!hasPartner) Icon(user.isPremium == true ? CupertinoIcons.chevron_right : Icons.lock, color: isDark ? Colors.white54 : _mauve, size: 16),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDoctorReportsButton() {
+  Widget _buildDoctorReportsButton(bool isDark) {
     return GestureDetector(
       onTap: () => context.go('/doctor'),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: isDark ? Colors.white.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _rose.withOpacity(0.1)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          border: Border.all(color: _rose.withOpacity(isDark ? 0.2 : 0.1)),
+          boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Row(
           children: [
@@ -1116,26 +1196,29 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Doctor Reports', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
-                  Text('Upload and analyze with AI', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: _mauve)),
+                  Text('Doctor Reports', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
+                  Text('Upload and analyze with AI', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? Colors.white54 : _mauve)),
                 ],
               ),
             ),
-            const Icon(CupertinoIcons.chevron_right, color: _mauve, size: 20),
+            Icon(CupertinoIcons.chevron_right, color: isDark ? Colors.white54 : _mauve, size: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSymptomChecker() {
+  Widget _buildSymptomChecker(bool isDark) {
+    final user = context.watch<AuthProvider>().userData;
+    final isPremium = user?.isPremium ?? false;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark ? Colors.white.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _sky.withOpacity(0.2)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: _sky.withOpacity(isDark ? 0.3 : 0.2)),
+        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1144,18 +1227,32 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
             children: [
               const Icon(Icons.info_outline, color: _sky, size: 18),
               const SizedBox(width: 8),
-              Text('Symptom Checker 🩺', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
+              Text('Symptom Checker 🩺', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
+              if (!isPremium) const Spacer(),
+              if (!isPremium) const Icon(Icons.lock, color: Colors.amber, size: 16),
             ],
           ),
           const SizedBox(height: 8),
-          Text('Worried about something? Get instant AI analysis.', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: _mauve, fontStyle: FontStyle.italic)),
+          Text(
+            'Worried about something? Get instant AI analysis.', 
+            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? Colors.white60 : _mauve, fontStyle: FontStyle.italic)
+          ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => context.go('/journey'),
-              icon: const Icon(CupertinoIcons.sparkles, size: 16),
-              label: Text('Check Symptoms Now', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+              onPressed: () {
+                if (!isPremium) {
+                  context.push('/paywall');
+                  return;
+                }
+                context.go('/journey');
+              },
+              icon: Icon(isPremium ? CupertinoIcons.sparkles : Icons.lock, size: 16),
+              label: Text(
+                isPremium ? 'Check Symptoms Now' : 'Unlock Premium Symptom Checker', 
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)
+              ),
               style: ElevatedButton.styleFrom(backgroundColor: _sky, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
             ),
           ),
@@ -1165,7 +1262,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   }
 
   // ── Meal Popup ─────────────────────────────────────────────────────────────
-  Widget _buildMealPopup() {
+  Widget _buildMealPopup(bool isDark) {
     return GestureDetector(
       onTap: () => setState(() => _showMealPopup = false),
       child: Container(
@@ -1175,15 +1272,18 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           onTap: () {}, // Prevent closing when tapping inside
           child: Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E1E1E) : Theme.of(context).colorScheme.surface, 
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24))
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Log Your Meal', style: GoogleFonts.dmSerifDisplay(fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
-                    IconButton(onPressed: () => setState(() => _showMealPopup = false), icon: const Icon(CupertinoIcons.xmark, color: _mauve)),
+                    Text('Log Your Meal', style: GoogleFonts.dmSerifDisplay(fontSize: 18, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
+                    IconButton(onPressed: () => setState(() => _showMealPopup = false), icon: Icon(CupertinoIcons.xmark, color: isDark ? Colors.white54 : _mauve)),
                   ],
                 ),
                 if (_mealLogged)
@@ -1191,8 +1291,8 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     children: [
                       const Text('🎉', style: TextStyle(fontSize: 40)),
                       const SizedBox(height: 8),
-                      Text('Meal Logged!', style: GoogleFonts.dmSerifDisplay(fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
-                      Text('Great job fueling you and baby!', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: _mauve)),
+                      Text('Meal Logged!', style: GoogleFonts.dmSerifDisplay(fontSize: 18, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
+                      Text('Great job fueling you and baby!', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? Colors.white60 : _mauve)),
                     ],
                   )
                 else
@@ -1201,10 +1301,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       TextField(
                         onChanged: (v) => setState(() => _mealInput = v),
                         onSubmitted: (_) => _handleQuickMealLog(),
+                        style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white : Colors.black),
                         decoration: InputDecoration(
                           hintText: 'What did you eat? e.g. banana, rice, dal...',
+                          hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white38 : Colors.grey),
                           filled: true,
-                          fillColor: _cream,
+                          fillColor: isDark ? Colors.white.withOpacity(0.05) : _cream,
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: _rose.withOpacity(0.1))),
                           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: _rose, width: 2)),
                         ),
@@ -1218,8 +1320,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                             onTap: () => setState(() => _mealInput = s.substring(2).trim()),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(color: _cream, borderRadius: BorderRadius.circular(16)),
-                              child: Text(s, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: _mauve)),
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.white.withOpacity(0.1) : _cream, 
+                                borderRadius: BorderRadius.circular(16)
+                              ),
+                              child: Text(s, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? Colors.white70 : _mauve)),
                             ),
                           ),
                         ).toList(),
@@ -1251,7 +1356,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   }
 
   // ── Wellness Modal ────────────────────────────────────────────────────────
-  Widget _buildWellnessModal() {
+  Widget _buildWellnessModal(bool isDark) {
     final activity = _wellnessActivities.firstWhere((a) => a['key'] == _activeWellness);
     return GestureDetector(
       onTap: () => setState(() => _activeWellness = null),
@@ -1262,7 +1367,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           onTap: () {},
           child: Container(
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E1E1E) : Theme.of(context).colorScheme.surface, 
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24))
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1276,17 +1384,21 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   child: Center(child: Text(activity['icon'], style: const TextStyle(fontSize: 32))),
                 ),
                 const SizedBox(height: 16),
-                Text(activity['label'], style: GoogleFonts.dmSerifDisplay(fontSize: 20, color: Theme.of(context).colorScheme.onSurface)),
+                Text(activity['label'], style: GoogleFonts.dmSerifDisplay(fontSize: 20, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(height: 8),
-                Text(activity['impact'], style: GoogleFonts.plusJakartaSans(fontSize: 14, color: _mauve, height: 1.5), textAlign: TextAlign.center),
+                Text(activity['impact'], style: GoogleFonts.plusJakartaSans(fontSize: 14, color: isDark ? Colors.white70 : _mauve, height: 1.5), textAlign: TextAlign.center),
                 const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => setState(() => _activeWellness = null),
-                        style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-                        child: Text('Maybe Later', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w500)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12), 
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          side: isDark ? BorderSide(color: Colors.white24) : null,
+                        ),
+                        child: Text('Maybe Later', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w500, color: isDark ? Colors.white70 : null)),
                       ),
                     ),
                     const SizedBox(width: 12),

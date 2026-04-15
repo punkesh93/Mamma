@@ -6,7 +6,7 @@ import '../../models/health_metrics_model.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
     app: Firebase.app(),
-    databaseId: 'ai-studio-c578e6c9-8cd4-4412-bd62-c325f63dac05',
+    databaseId: '(default)',
   );
 
   // ── User Data ────────────────────────────────────────────────────────────
@@ -127,11 +127,21 @@ class FirestoreService {
 
   // ── Partner Mode ─────────────────────────────────────────────────────────
 
-  Future<void> linkPartnerAccount(String userId, String partnerEmail, String partnerId) async {
-    await _db.collection('users').doc(userId).update({
-      'partnerEmail': partnerEmail,
-      'partnerId': partnerId,
+  Future<void> linkPartnerAccount(String userId, String targetEmail, String targetId) async {
+    final batch = _db.batch();
+    
+    // Update current user
+    batch.update(_db.collection('users').doc(userId), {
+      'partnerEmail': targetEmail,
+      'partnerId': targetId,
     });
+    
+    // Update target user (mother) to also point to the partner
+    batch.update(_db.collection('users').doc(targetId), {
+      'partnerId': userId,
+    });
+
+    await batch.commit();
   }
 
   Future<UserModel?> getPartnerData(String partnerId) async {

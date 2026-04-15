@@ -138,6 +138,12 @@ class _DoctorTabState extends State<DoctorTab> {
       EXPECTATIONS: Provide 3-4 clear, encouraging sentences explaining the key takeaway from the image.
       ''';
 
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (!(auth.userData?.isPremium ?? false)) {
+        context.push('/paywall');
+        return;
+      }
+
       final result = await _aiService.analyzeMedicalReport(
         prompt: prompt,
         base64Image: _base64Image!,

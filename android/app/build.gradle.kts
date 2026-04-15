@@ -41,6 +41,15 @@ android {
     }
 }
 
+dependencies {
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+    implementation("com.razorpay:checkout:1.6.40")
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+}
+
 flutter {
     source = "../.."
 }

@@ -136,6 +136,10 @@ final GoRouter _router = GoRouter(
           path: '/chat',
           builder: (context, state) => const AiChatScreen(),
         ),
+        GoRoute(
+          path: '/partner',
+          builder: (context, state) => const PartnerLinkingScreen(),
+        ),
       ],
     ),
   ],
@@ -199,7 +203,7 @@ class AppLayoutWrapper extends StatelessWidget {
     final location = GoRouterState.of(context).matchedLocation;
 
     return Scaffold(
-      extendBody: true,
+      extendBody: false,
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -255,13 +259,17 @@ class AppLayoutWrapper extends StatelessWidget {
           SafeArea(child: child),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/chat'),
-        backgroundColor: const Color(0xFF6B4B9A),
-        elevation: 4,
-        child: const Icon(CupertinoIcons.chat_bubble_2_fill, color: Colors.white),
-      ),
-      bottomNavigationBar: _buildBottomNav(context, location),
+      floatingActionButton: location == '/chat'
+          ? null
+          : FloatingActionButton(
+              onPressed: () => context.push('/chat'),
+              backgroundColor: const Color(0xFF6B4B9A),
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: const Icon(CupertinoIcons.chat_bubble_2_fill, color: Colors.white, size: 20),
+            ).animate().scale(delay: 500.ms, duration: 400.ms, curve: Curves.elasticOut),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      bottomNavigationBar: location == '/chat' ? null : _buildBottomNav(context, location),
     );
   }
 

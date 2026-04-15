@@ -53,13 +53,6 @@ class SubscriptionService {
     );
   }
 
-  /// Generates the live Razorpay payment URL
-  Future<Uri> getRazorpayUrl({required String amount}) async {
-    final key = ApiConstants.razorpayKey;
-    // Standard Razorpay payment link with key
-    return Uri.parse('https://razorpay.me/@mammabuddy?amount=${(double.parse(amount) * 100).toInt()}&key=$key');
-  }
-
   /// Activates premium for a user (called after successful payment)
   Future<void> activatePremium(UserModel user, String planId, int months) async {
     final now = DateTime.now();
@@ -71,6 +64,7 @@ class SubscriptionService {
       subscriptionType: planId,
       subscriptionExpiryDate: expiry.toIso8601String(),
       autoRenew: true,
+      lastLoginDate: DateTime.now().toIso8601String(), // Force a refresh state
     );
 
     await _firestoreService.createUser(updatedUser);

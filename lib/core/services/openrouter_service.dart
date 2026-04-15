@@ -111,38 +111,30 @@ User Name: $userName
 Current Pregnancy Week: $week
 
 Your task is to provide exactly 3 short, highly actionable tips focusing specifically on: $focusAreas.
-Use the user's name and week for personalization. Maintain a warm, "antigravity" tone.
-Do not include any pleasantries or conversational filler outside the tips. Just return the 3 tips.''';
+Use the user's name and week for personalization. Maintain a warm, supportive tone.
+Do not include any pleasantries or conversational filler outside the tips. Just return the 3 tips as a list.''';
 
-    if (_apiKey.isEmpty || _apiKey.contains('REPLACE')) {
-      return _getFallbackResponse('wellness');
-    }
+    return _callOpenRouter(
+      systemPrompt: prompt,
+      userMessage: 'Please give me my weekly tips.',
+      fallbackType: 'wellness',
+    );
+  }
 
-    try {
-      final response = await http.post(
-        Uri.parse(ApiConstants.openRouterBaseUrl),
-        headers: {
-          'Authorization': 'Bearer $_apiKey',
-          'HTTP-Referer': ApiConstants.appReferer,
-          'X-Title': ApiConstants.appTitle,
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': 'openrouter/free',
-          'messages': [
-            {'role': 'system', 'content': prompt},
-            {'role': 'user', 'content': 'Please give me my weekly tips.'},
-          ],
-        }),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['choices'][0]['message']['content'] as String;
-      }
-      return _getFallbackResponse('wellness');
-    } catch (e) {
-      return _getFallbackResponse('wellness');
-    }
+  // ── AI Meal Nutrition Analysis (NEW) ───────────────────────────────────────
+  Future<String> analyzeMealNutrition({required String mealDescription}) async {
+    const prompt = '''You are a precise nutrition analyzer.
+Analyze the meal described by the user.
+Extract the following: calories (kcal), protein (g), iron (mg), and calcium (mg).
+Return ONLY a JSON object in this format:
+{"calories": X, "protein": X, "iron": X, "calcium": X}
+If any value is unknown, use 0. Do not include any text before or after the JSON.''';
+
+    return _callOpenRouter(
+      systemPrompt: prompt,
+      userMessage: mealDescription,
+      fallbackType: 'meal_plan',
+    );
   }
 
   // ── For the AI Chat screen ─────────────────────────────────
@@ -151,59 +143,18 @@ Do not include any pleasantries or conversational filler outside the tips. Just 
     bool isMoodCheck = false,
     bool isWellnessTip = false,
   }) async {
-    // Check if API key is valid
-    if (_apiKey.isEmpty || _apiKey.contains('REPLACE')) {
-      return isMoodCheck
-          ? _getFallbackResponse('mood')
-          : isWellnessTip
-              ? _getFallbackResponse('wellness')
-              : _getFallbackResponse('insight');
-    }
-
-    try {
-      final response = await http.post(
-        Uri.parse(ApiConstants.openRouterBaseUrl),
-        headers: {
-          'Authorization': 'Bearer $_apiKey',
-          'HTTP-Referer': ApiConstants.appReferer,
-          'X-Title': ApiConstants.appTitle,
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': ApiConstants.openRouterModel,
-          'messages': [
-            {
-              'role': 'system',
-              'content': 'You are Mamma Buddy, an empathetic, highly knowledgeable, and comforting AI maternity assistant. Provide concise, evidence-based advice regarding pregnancy, nutrition, and wellness. Always maintain a warm, supportive tone. Do not diagnose medical conditions; advise consulting a doctor for emergencies.',
-            },
-            ...conversationHistory,
-          ],
-        }),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['choices'][0]['message']['content'] as String;
-      }
-      // Fallback on API error
-      return isMoodCheck
-          ? _getFallbackResponse('mood')
-          : isWellnessTip
-              ? _getFallbackResponse('wellness')
-              : _getFallbackResponse('insight');
-    } catch (e) {
-      // Return fallback on network error
-      return isMoodCheck
-          ? _getFallbackResponse('mood')
-          : isWellnessTip
-              ? _getFallbackResponse('wellness')
-              : _getFallbackResponse('insight');
-    }
+    return _callOpenRouter(
+      systemPrompt: 'You are Mamma Buddy, an empathetic, highly knowledgeable, and comforting AI maternity assistant. Provide concise, evidence-based advice regarding pregnancy, nutrition, and wellness. Always maintain a warm, supportive tone. Do not diagnose medical conditions; advise consulting a doctor for emergencies.',
+      userMessages: conversationHistory,
+      fallbackType: isMoodCheck ? 'mood' : (isWellnessTip ? 'wellness' : 'insight'),
+    );
   }
 
   // ── Shared internal method ─────────────────────────────────
   Future<String> _callOpenRouter({
     required String systemPrompt,
-    required String userMessage,
+    String? userMessage,
+    List<Map<String, String>>? userMessages,
     String fallbackType = 'wellness',
   }) async {
     // Check if API key is valid
@@ -211,6 +162,16 @@ Do not include any pleasantries or conversational filler outside the tips. Just 
       return _getFallbackResponse(fallbackType);
     }
 
+    final List<Map<String, dynamic>> messages = [
+      {'role': 'system', 'content': systemPrompt},
+    ];
+
+    if (userMessages != null) {
+      messages.addAll(userMessages);
+    } else if (userMessage != null) {
+      messages.add({'role': 'user', 'content': userMessage});
+    }
+
     try {
       final response = await http.post(
         Uri.parse(ApiConstants.openRouterBaseUrl),
@@ -222,20 +183,19 @@ Do not include any pleasantries or conversational filler outside the tips. Just 
         },
         body: jsonEncode({
           'model': ApiConstants.openRouterModel,
-          'messages': [
-            {'role': 'system', 'content': systemPrompt},
-            {'role': 'user', 'content': userMessage},
-          ],
+          'messages': messages,
+          'temperature': 0.7,
         }),
-      );
+      ).timeout(const Duration(seconds: 15));
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['choices'][0]['message']['content'] as String;
+        if (data['choices'] != null && data['choices'].isNotEmpty) {
+          return data['choices'][0]['message']['content'] as String;
+        }
       }
-      // Fallback on API error
       return _getFallbackResponse(fallbackType);
     } catch (e) {
-      // Return fallback on network error
       return _getFallbackResponse(fallbackType);
     }
   }
@@ -252,7 +212,6 @@ Do not include any pleasantries or conversational filler outside the tips. Just 
           'HTTP-Referer': ApiConstants.appReferer, 
         },
         body: jsonEncode({
-          // Using a model that supports vision
           "model": "openai/gpt-4o-mini",
           "messages": [
             {
@@ -272,7 +231,7 @@ Do not include any pleasantries or conversational filler outside the tips. Just 
             }
           ]
         }),
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

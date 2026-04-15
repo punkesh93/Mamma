@@ -78,4 +78,13 @@ class TrackerProvider extends ChangeNotifier {
   Stream<List<HealthRecord>> getHealthRecords(String userId) {
     return _firestoreService.streamHealthRecords(userId);
   }
+
+  Future<HealthRecord?> getLatestRecord(String userId) async {
+    try {
+      final records = await _firestoreService.streamHealthRecords(userId).first;
+      return records.isNotEmpty ? records.first : null;
+    } catch (e) {
+      return null;
+    }
+  }
 }
