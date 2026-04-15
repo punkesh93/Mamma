@@ -6,12 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
-import 'firebase_options.dart';
+// No firebase options
 import 'providers/auth_provider.dart';
 import 'providers/tracker_provider.dart';
 import 'providers/theme_provider.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/onboarding_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/setup_screen.dart';
 import 'screens/home_tab.dart';
 import 'screens/nutrition_tab.dart';
@@ -38,9 +37,7 @@ Future<void> main() async {
   }
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp();
 
   runApp(
     MultiProvider(
@@ -63,11 +60,11 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/login',
-      builder: (context, state) => const LoginScreen(),
+      builder: (context, state) => const WelcomeScreen(),
     ),
     GoRoute(
       path: '/onboarding',
-      builder: (context, state) => const OnboardingScreen(),
+      builder: (context, state) => const WelcomeScreen(),
     ),
     GoRoute(
       path: '/setup',
@@ -95,7 +92,7 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/chat',
-      builder: (context, state) => const AIChatScreen(),
+      builder: (context, state) => const AiChatScreen(),
     ),
     GoRoute(
       path: '/paywall',
@@ -167,7 +164,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (authProvider.firebaseUser == null) {
       context.go('/onboarding');
     } else {
-      await authProvider.refreshUserData();
+      await authProvider.reloadUser();
       if (!mounted) return;
       if (authProvider.userData == null) {
         context.go('/setup');

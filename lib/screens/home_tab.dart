@@ -292,7 +292,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
     if (user.isPartnerAccount == true) {
       if (user.partnerEmail != null && user.partnerEmail!.isNotEmpty && user.partnerId == null) {
-        _syncPartnerId(user);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _syncPartnerId(user);
+        });
       }
       
       if (user.partnerId != null) {
