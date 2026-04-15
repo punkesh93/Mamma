@@ -18,14 +18,24 @@ class AuthService {
     try {
       if (kIsWeb) {
         // On Web, google_sign_in v7 throws "authenticate is not supported"
-        // because it strictly enforces HTML buttons. 
+        // because it strictly enforces HTML buttons.
         // Firebase natively supports signInWithPopup on custom Flutter buttons!
         final provider = GoogleAuthProvider();
         provider.setCustomParameters({'prompt': 'select_account'});
         return await _auth.signInWithPopup(provider);
       } else {
         // On Android / iOS, we use the native google_sign_in plugin
-        final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+        GoogleSignInAccount? googleUser;
+        try {
+          googleUser = await _googleSignIn.authenticate();
+        } catch (signInError, signInStack) {
+          // Print exact error so it is never silent in the logs
+          debugPrint('══════════════════════════════════════════════');
+          debugPrint('❌ Google Sign-In ERROR: $signInError');
+          debugPrint('📍 Stack trace: $signInStack');
+          debugPrint('══════════════════════════════════════════════');
+          rethrow;
+        }
 
         final GoogleSignInAuthentication auth = googleUser.authentication;
         final credential = GoogleAuthProvider.credential(
@@ -34,7 +44,11 @@ class AuthService {
 
         return await _auth.signInWithCredential(credential);
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('══════════════════════════════════════════════');
+      debugPrint('❌ Google Sign-In FATAL: $e');
+      debugPrint('📍 Stack: $stack');
+      debugPrint('══════════════════════════════════════════════');
       throw Exception('Google Sign-In failed: $e');
     }
   }

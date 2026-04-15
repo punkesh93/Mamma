@@ -137,7 +137,7 @@ class _SetupScreenState extends State<SetupScreen> {
     await auth.saveUserData(userModel);
 
     if (mounted) {
-      context.go('/');
+      context.go('/home');
     }
   }
 
@@ -304,12 +304,16 @@ class _SetupScreenState extends State<SetupScreen> {
           ],
         ),
         child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -360,7 +364,26 @@ class _SetupScreenState extends State<SetupScreen> {
           children: [
             Expanded(child: _buildSecondaryButton('Back', () => setState(() => _step = 1), isDark)),
             const SizedBox(width: 16),
-            Expanded(flex: 2, child: _buildPrimaryButton('Next Step', () => setState(() => _step = 3), rose)),
+            Expanded(
+              flex: 2,
+              child: _buildPrimaryButton(
+                'Next Step',
+                () {
+                  final isPartner = _formData['isPartnerAccount'] == true;
+                  if (isPartner && (_formData['partnerEmail'] as String? ?? '').trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Please enter the mother's email address."),
+                        backgroundColor: Color(0xFFE8748A),
+                      ),
+                    );
+                    return;
+                  }
+                  setState(() => _step = 3);
+                },
+                rose,
+              ),
+            ),
           ],
         ),
       ],
