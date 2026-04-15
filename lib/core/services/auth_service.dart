@@ -1,9 +1,13 @@
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(serverClientId: '733225462613-4l9qjslf6i2q2us6oj8h7lh7otdnsjj2.apps.googleusercontent.com');
+
+
 
   // Stream of auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -26,7 +30,7 @@ class AuthService {
         // On Android / iOS, we use the native google_sign_in plugin
         GoogleSignInAccount? googleUser;
         try {
-          googleUser = await _googleSignIn.authenticate();
+          googleUser = await _googleSignIn.signIn();
         } catch (signInError, signInStack) {
           // Print exact error so it is never silent in the logs
           debugPrint('══════════════════════════════════════════════');
@@ -36,7 +40,11 @@ class AuthService {
           rethrow;
         }
 
-        final GoogleSignInAuthentication auth = googleUser.authentication;
+        if (googleUser == null) return null;
+
+        final GoogleSignInAuthentication auth = await googleUser.authentication;
+
+
         final credential = GoogleAuthProvider.credential(
           idToken: auth.idToken,
         );
