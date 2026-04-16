@@ -31,7 +31,7 @@ void main() {
                             if (user != null) {
                               final updatedUser = user.copyWith(plan: 'basic');
                               await auth.saveUserData(updatedUser);
-                              await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+                              await FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: 'ai-studio-c578e6c9-8cd4-4412-bd62-c325f63dac05').collection('users').doc(user.uid).update({
                                 'plan': 'basic',
                                 'isPremium': false,
                                 'premiumSince': FieldValue.delete(),

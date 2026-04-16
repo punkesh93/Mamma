@@ -6,8 +6,9 @@ import '../../models/health_metrics_model.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
     app: Firebase.app(),
-    databaseId: '(default)',
+    databaseId: 'ai-studio-c578e6c9-8cd4-4412-bd62-c325f63dac05',
   );
+
 
   // ── User Data ────────────────────────────────────────────────────────────
 
